@@ -82,30 +82,6 @@ const HomePage = () => {
     <div>
       <MainCarousel slides={homeSlides} />
 
-      <section className="py-6 px-4 max-w-[97%] mx-auto">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <h2 className="text-xl lg:text-2xl font-bold text-gray-800">
-            Explore by Category
-          </h2>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <button
-              key={category._id}
-              type="button"
-              onClick={() => setActiveCategoryId(category._id)}
-              className={`px-4 py-2 rounded-full border text-sm transition ${
-                activeCategoryId === category._id
-                  ? "bg-gray-900 text-white border-gray-900"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-              }`}
-            >
-              {category.name}
-            </button>
-          ))}
-        </div>
-      </section>
 
       {error && (
         <div className="px-4 max-w-[97%] mx-auto">
