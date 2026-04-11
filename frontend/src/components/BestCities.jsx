@@ -1,16 +1,16 @@
 import React, { useRef, useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import TourCard from "./TourCard";
 
-export default function BestCities({ 
-  mainHeading = "Best Cities to Visit", 
-  cardHeadingPrefix = "Things to do in", 
-  data = [] 
+export default function BestCities({
+  mainHeading = "Best Cities to Visit",
+  cardHeadingPrefix = "Things to do in",
+  data = [],
 }) {
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Check scroll position to enable/disable navigation buttons
   const checkScroll = () => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
@@ -22,7 +22,6 @@ export default function BestCities({
   const scroll = (direction) => {
     if (scrollRef.current) {
       const { clientWidth } = scrollRef.current;
-      // Scrolls by half the container width for a smooth reveal effect
       const scrollAmount = direction === "left" ? -clientWidth / 2 : clientWidth / 2;
       scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
@@ -34,18 +33,12 @@ export default function BestCities({
     return () => window.removeEventListener("resize", checkScroll);
   }, [data]);
 
-
   return (
     <section className="py-6 px-4 max-w-[97%] mx-auto font-sans">
       {/* CSS to hide scrollbar across all browsers while keeping scroll active */}
       <style dangerouslySetInnerHTML={{ __html: `
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
 
       {/* Header Row */}
@@ -54,7 +47,6 @@ export default function BestCities({
           {mainHeading}
         </h2>
 
-        {/* Navigation Buttons */}
         <div className="flex gap-2">
           <button
             onClick={() => scroll("left")}
@@ -84,34 +76,13 @@ export default function BestCities({
         className="flex gap-5 overflow-x-auto pb-6 snap-x no-scrollbar scroll-smooth"
       >
         {data.map((item) => (
-          <div
+          <TourCard
             key={item.id}
-            className="shrink-0 w-52 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group cursor-pointer snap-start overflow-hidden"
-          >
-            {/* Image Container */}
-            <div className="h-48 m-2 overflow-hidden rounded-2xl relative">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-            </div>
-
-            {/* Content Area */}
-            <div className="p-4 pt-1 relative overflow-hidden">
-              <h3 className="text-gray-800 font-semibold line-clamp-2 text-sm mb-1 leading-4 md:leading-5">
-                {cardHeadingPrefix} {item.name}
-              </h3>
-              <p className="text-gray-400 text-xs font-medium">
-                {item.subtext || item.country}
-              </p>
-
-              {/* Hover Arrow Effect */}
-              <div className="absolute bottom-1 right-4 transition-all duration-300 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100">
-                <ArrowRight size={18} className="text-gray-500" />
-              </div>
-            </div>
-          </div>
+            image={item.image}
+            title={`${cardHeadingPrefix} ${item.name}`}
+            subtext={item.subtext || item.country}
+            variant="city"
+          />
         ))}
       </div>
     </section>

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import CruiseCard from "./CruiseCard";
+import TourCard from "./TourCard";
 
 const CruiseSection = ({ title, activities }) => {
   const scrollRef = useRef(null);
@@ -17,7 +17,7 @@ const CruiseSection = ({ title, activities }) => {
 
   const scroll = (direction) => {
     if (scrollRef.current) {
-      const scrollAmount = direction === "left" ? -400 : 400; // Wider scroll amount for wider cards
+      const scrollAmount = direction === "left" ? -400 : 400;
       scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
@@ -28,7 +28,7 @@ const CruiseSection = ({ title, activities }) => {
         <h2 className="flex flex-col gap-1">
           <span className="text-xl lg:text-2xl font-bold text-gray-800">{title}</span>
         </h2>
-     
+
         <div className="flex gap-2">
           <button
             onClick={() => scroll("left")}
@@ -53,7 +53,18 @@ const CruiseSection = ({ title, activities }) => {
         className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-6 pt-2"
       >
         {activities?.map((item, index) => (
-          <CruiseCard key={index} activity={item} />
+          <TourCard
+            key={index}
+            image={item.images || item.image}
+            title={item.title}
+            shipName={item.shipName}
+            departure={item.departure}
+            duration={item.duration}
+            departures={item.departures}
+            itinerary={item.itinerary}
+            price={item.price}
+            variant="cruise"
+          />
         ))}
       </div>
     </section>
