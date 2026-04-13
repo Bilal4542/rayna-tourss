@@ -21,6 +21,37 @@ export const homeApi = {
     }
   },
 
+  /**
+   * Fetches all categories and flattens their banners into carousel slide objects.
+   * Each slide: { url, title, subtext, description, categoryName, categorySlug }
+   */
+  async getBannerSlides() {
+    try {
+      const { data } = await api.get("/categories");
+      const categories = data?.data || [];
+      const slides = [];
+      for (const cat of categories) {
+        const banners = Array.isArray(cat.banners) ? cat.banners : [];
+        for (const banner of banners) {
+          const url =
+            typeof banner === "string" ? banner : banner?.url;
+          if (!url) continue;
+          slides.push({
+            url,
+            title: banner?.title || cat.name || "",
+            subtext: banner?.subtext || "",
+            description: banner?.description || "",
+            categoryName: cat.name,
+            categorySlug: cat.slug,
+          });
+        }
+      }
+      return slides;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
   async getProductsGroupedByCity(categoryId) {
     try {
       const { data } = await api.get(`/products/grouped/category/${categoryId}`);
@@ -30,3 +61,4 @@ export const homeApi = {
     }
   },
 };
+

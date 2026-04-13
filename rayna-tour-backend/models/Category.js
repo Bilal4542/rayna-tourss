@@ -17,7 +17,11 @@ const categorySchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-    banners: { type: [String], default: [] },
+    // Mixed array — each element is either a legacy plain string URL
+    // or the new banner object { url, title, subtext, description }.
+    // Using Mixed avoids Mongoose silently discarding old string values
+    // when the schema shape changes.
+    banners: { type: [mongoose.Schema.Types.Mixed], default: [] },
   },
   {
     timestamps: true,

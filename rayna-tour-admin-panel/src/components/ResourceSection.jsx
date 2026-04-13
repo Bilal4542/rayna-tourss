@@ -9,33 +9,46 @@ const toSlug = (value = "") =>
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 
-const extractCloudinaryPublicId = (url = "") => {
-  try {
-    const cleanUrl = url.split("?")[0];
-    const marker = "/upload/";
-    const markerIndex = cleanUrl.indexOf(marker);
-    if (markerIndex === -1) return "";
-    const filePath = cleanUrl.slice(markerIndex + marker.length);
-    const withoutVersion = filePath.replace(/^v\d+\//, "");
-    return withoutVersion.replace(/\.[^/.]+$/, "");
-  } catch {
-    return "";
-  }
-};
+/** Stable unique id for each slot so React keys don't change */
+let _uid = 0;
+const uid = () => `slot-${++_uid}-${Date.now()}`;
 
-const makeBannerSlot = (slot = {}) => ({
-  id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-  url: slot.url || "",
-  publicId: slot.publicId || "",
-  file: slot.file || null,
-  isLocal: Boolean(slot.file),
+/** Empty slot template */
+const emptySlot = () => ({
+  id: uid(),
+  /** Cloudinary / remote URL (authoritative on save) */
+  remoteUrl: "",
+  /** Temporary blob URL shown in the UI before upload */
+  previewUrl: "",
+  /** Actual File object – present only for newly picked files */
+  file: null,
+  title: "",
+  subtext: "",
+  description: "",
 });
+
+/**
+ * Converts a raw banner value from the server (string or object) into a slot.
+ */
+const bannerToSlot = (raw) => {
+  const url = typeof raw === "string" ? raw : String(raw?.url || "").trim();
+  if (!url) return null;
+  return {
+    id: uid(),
+    remoteUrl: url,
+    previewUrl: url,
+    file: null,
+    title: typeof raw === "object" ? String(raw?.title || "") : "",
+    subtext: typeof raw === "object" ? String(raw?.subtext || "") : "",
+    description: typeof raw === "object" ? String(raw?.description || "") : "",
+  };
+};
 
 const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
   const [items, setItems] = useState([]);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [bannerSlots, setBannerSlots] = useState([makeBannerSlot()]);
+  const [slots, setSlots] = useState([emptySlot()]);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -60,38 +73,48 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
   const resetForm = () => {
     setName("");
     setSlug("");
-    setBannerSlots([makeBannerSlot()]);
+    setSlots([emptySlot()]);
     setSubmitting(false);
     setEditingId(null);
   };
 
-  const ensureTrailingEmptySlot = (slots) => {
-    const filtered = slots.filter((slot, idx) => {
-      if (slot.url || slot.file) return true;
-      return idx === slots.length - 1;
-    });
-    if (filtered.length === 0 || filtered[filtered.length - 1].url) {
-      filtered.push(makeBannerSlot());
+  // ── Slot helpers ────────────────────────────────────────────────────────────
+
+  /** Ensures there is always exactly one trailing empty slot */
+  const withTrailingEmpty = (list) => {
+    const last = list[list.length - 1];
+    if (!last || last.remoteUrl || last.previewUrl) {
+      return [...list, emptySlot()];
     }
-    return filtered;
+    return list;
   };
 
-  const normalizeBannerValues = (item) => {
-    const rawBanners = Array.isArray(item?.banners)
-      ? item.banners
-      : item?.banner
-      ? [item.banner]
-      : [];
+  const updateSlot = (id, patch) =>
+    setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
 
-    return rawBanners
-      .map((entry) => {
-        if (typeof entry === "string") return entry;
-        if (entry && typeof entry === "object") return entry.url || entry.secure_url || "";
-        return "";
-      })
-      .map((url) => String(url || "").trim())
-      .filter(Boolean);
+  const removeSlot = (id) =>
+    setSlots((prev) => {
+      const next = prev.filter((s) => s.id !== id);
+      return withTrailingEmpty(next.length ? next : []);
+    });
+
+  const onPickFile = (id, file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Only image files are allowed.");
+      return;
+    }
+    setError("");
+    const previewUrl = URL.createObjectURL(file);
+    setSlots((prev) => {
+      const next = prev.map((s) =>
+        s.id === id ? { ...s, previewUrl, file } : s
+      );
+      return withTrailingEmpty(next);
+    });
   };
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -105,28 +128,30 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
       };
 
       if (enableBanner) {
-        const filledSlots = bannerSlots.filter((slot) => slot.url || slot.file);
-        const keptRemoteUrls = filledSlots
-          .filter((slot) => !slot.file && slot.url && !String(slot.url).startsWith("blob:"))
-          .map((slot) => String(slot.url).trim())
-          .filter(Boolean);
+        // Only process slots that have an image (either an existing remote URL or a new file)
+        const filled = slots.filter((s) => s.remoteUrl || s.file);
 
-        const localFiles = filledSlots.filter(
-          (slot) => slot.file && (slot.file instanceof File || slot.file instanceof Blob)
+        // Upload any newly picked files first
+        const withUrls = await Promise.all(
+          filled.map(async (s) => {
+            if (s.file) {
+              const result = await apiService.uploadImage(s.file);
+              const cloudUrl = result?.url;
+              if (!cloudUrl) throw new Error("Image upload failed. Please try again.");
+              return { ...s, remoteUrl: cloudUrl };
+            }
+            return s; // already has remoteUrl
+          })
         );
-        const uploadedResults = await Promise.all(
-          localFiles.map((slot) => apiService.uploadImage(slot.file))
-        );
-        const uploadedUrls = uploadedResults
-          .map((result) => result?.url)
-          .map((url) => (typeof url === "string" ? url.trim() : ""))
-          .filter(Boolean);
 
-        if (localFiles.length !== uploadedUrls.length) {
-          throw new Error("One or more banner uploads failed. Please try again.");
-        }
-
-        payload.banners = [...keptRemoteUrls, ...uploadedUrls].filter(Boolean);
+        payload.banners = withUrls
+          .filter((s) => s.remoteUrl)
+          .map((s) => ({
+            url: s.remoteUrl,
+            title: s.title.trim(),
+            subtext: s.subtext.trim(),
+            description: s.description.trim(),
+          }));
       }
 
       if (editingId) {
@@ -134,6 +159,7 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
       } else {
         await apiService.createResource(resourcePath, payload);
       }
+
       resetForm();
       await load();
     } catch (err) {
@@ -143,51 +169,21 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
     }
   };
 
+  // ── Edit ────────────────────────────────────────────────────────────────────
+
   const onEdit = (item) => {
     setEditingId(item._id);
     setName(item.name || "");
     setSlug(item.slug || "");
 
-    const bannerUrls = normalizeBannerValues(item);
-    const slots = bannerUrls.map((url) =>
-      makeBannerSlot({
-        url,
-        publicId: extractCloudinaryPublicId(url),
-      })
-    );
-    setBannerSlots(ensureTrailingEmptySlot(slots));
+    const existing = Array.isArray(item.banners)
+      ? item.banners.map(bannerToSlot).filter(Boolean)
+      : [];
+
+    setSlots(withTrailingEmpty(existing.length ? existing : []));
   };
 
-  const onSelectBanner = (slotId, file) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("Only image files are allowed.");
-      return;
-    }
-
-    setError("");
-    const localUrl = URL.createObjectURL(file);
-    setBannerSlots((prev) => {
-      const next = prev.map((slot) =>
-        slot.id === slotId
-          ? {
-              ...slot,
-              url: localUrl,
-              file,
-              isLocal: true,
-            }
-          : slot
-      );
-      return ensureTrailingEmptySlot(next);
-    });
-  };
-
-  const onRemoveBanner = (slotId) => {
-    setBannerSlots((prev) => {
-      const next = prev.filter((slot) => slot.id !== slotId);
-      return ensureTrailingEmptySlot(next);
-    });
-  };
+  // ── Delete ──────────────────────────────────────────────────────────────────
 
   const onDelete = async (id) => {
     setError("");
@@ -200,6 +196,8 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
     }
   };
 
+  // ─── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <section className="card p-6">
       <div className="mb-4 flex items-center justify-between">
@@ -207,53 +205,101 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
       </div>
 
       <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-3">
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" required />
-        <input className="input" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="Slug" />
+        {/* Name & Slug */}
+        <input
+          className="input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+          required
+        />
+        <input
+          className="input"
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          placeholder="Slug (auto-generated if left blank)"
+        />
         <div className="flex gap-2">
           <button className="btn-primary" type="submit" disabled={submitting}>
-            {submitting ? "Saving..." : editingId ? "Update" : "Add"}
+            {submitting ? "Saving…" : editingId ? "Update" : "Add"}
           </button>
           {editingId && (
-            <button className="btn-secondary" type="button" onClick={resetForm}>Cancel</button>
+            <button className="btn-secondary" type="button" onClick={resetForm}>
+              Cancel
+            </button>
           )}
         </div>
+
+        {/* Banner slots */}
         {enableBanner && (
           <div className="sm:col-span-3">
-            <p className="mb-2 text-sm font-medium text-surface-700">Banners</p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {bannerSlots.map((slot) => (
+            <p className="mb-3 text-sm font-medium text-surface-700">
+              Banners — upload an image then fill in the slide text
+            </p>
+
+            <div className="flex flex-col gap-4">
+              {slots.map((slot) => (
                 <div
                   key={slot.id}
-                  className="relative aspect-square overflow-hidden rounded-xl border border-dashed border-surface-300 bg-surface-50"
+                  className="flex gap-4 rounded-xl border border-surface-200 bg-surface-50 p-4"
                 >
-                  {slot.url ? (
-                    <>
-                      <img
-                        src={slot.url}
-                        alt="Banner"
-                        className="h-full w-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-2 top-2 rounded-md bg-black/70 px-2 py-1 text-xs text-white hover:bg-black"
-                        onClick={() => onRemoveBanner(slot.id)}
-                        disabled={submitting}
-                      >
-                        Delete
-                      </button>
-                    </>
-                  ) : (
-                    <label className="flex h-full cursor-pointer flex-col items-center justify-center px-2 text-center text-xs text-surface-500">
-                      Upload banner
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => onSelectBanner(slot.id, e.target.files?.[0])}
-                        disabled={submitting}
-                      />
-                    </label>
-                  )}
+                  {/* ── Image area ──────────────────────────────────────── */}
+                  <div className="relative h-28 w-44 shrink-0 overflow-hidden rounded-lg border border-dashed border-surface-300 bg-white">
+                    {slot.previewUrl ? (
+                      <>
+                        <img
+                          src={slot.previewUrl}
+                          alt="Banner"
+                          className="h-full w-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          disabled={submitting}
+                          onClick={() => removeSlot(slot.id)}
+                          className="absolute right-1 top-1 rounded bg-black/70 px-2 py-0.5 text-[11px] text-white hover:bg-black"
+                        >
+                          Remove
+                        </button>
+                      </>
+                    ) : (
+                      <label className="flex h-full cursor-pointer flex-col items-center justify-center gap-1 text-center text-xs text-surface-500 px-2">
+                        <span>Click to upload</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={submitting}
+                          onChange={(e) => onPickFile(slot.id, e.target.files?.[0])}
+                        />
+                      </label>
+                    )}
+                  </div>
+
+                  {/* ── Text fields ─────────────────────────────────────── */}
+                  <div className="flex flex-1 flex-col gap-2 min-w-0">
+                    <input
+                      className="input text-sm"
+                      placeholder="Title  (e.g. Dubai Skyline & Luxury Cruises)"
+                      value={slot.title}
+                      disabled={submitting}
+                      onChange={(e) => updateSlot(slot.id, { title: e.target.value })}
+                    />
+                    <input
+                      className="input text-sm"
+                      placeholder="Subtext  (e.g. Sail across the globe)"
+                      value={slot.subtext}
+                      disabled={submitting}
+                      onChange={(e) => updateSlot(slot.id, { subtext: e.target.value })}
+                    />
+                    <textarea
+                      className="input text-sm resize-none"
+                      rows={2}
+                      placeholder="Description  (short paragraph shown on the slide)"
+                      value={slot.description}
+                      disabled={submitting}
+                      onChange={(e) => updateSlot(slot.id, { description: e.target.value })}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -263,43 +309,76 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
+      {/* ── Table ──────────────────────────────────────────────────────────── */}
       <div className="mt-5 overflow-auto rounded-lg border border-surface-200">
         <table className="min-w-full bg-white text-sm">
           <thead className="bg-surface-50 text-left text-surface-600">
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Slug</th>
-              {enableBanner && <th className="px-4 py-3">Banner</th>}
+              {enableBanner && <th className="px-4 py-3">Banners</th>}
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {!loading && items.length === 0 && (
               <tr>
-                <td className="px-4 py-4 text-surface-500" colSpan={enableBanner ? 4 : 3}>No records found.</td>
+                <td
+                  className="px-4 py-4 text-surface-500"
+                  colSpan={enableBanner ? 4 : 3}
+                >
+                  No records found.
+                </td>
               </tr>
             )}
             {items.map((item) => (
               <tr key={item._id} className="border-t border-surface-100">
-                <td className="px-4 py-3 font-medium text-surface-900">{item.name}</td>
+                <td className="px-4 py-3 font-medium text-surface-900">
+                  {item.name}
+                </td>
                 <td className="px-4 py-3 text-surface-600">{item.slug}</td>
                 {enableBanner && (
                   <td className="px-4 py-3">
-                    {item.banners?.[0] ? (
-                      <img
-                        src={item.banners[0]}
-                        alt="Banner"
-                        className="h-10 w-16 rounded object-cover"
-                      />
+                    {item.banners?.length > 0 ? (
+                      <div className="flex gap-1.5 flex-wrap">
+                        {item.banners.slice(0, 4).map((b, i) => {
+                          const src = typeof b === "string" ? b : b?.url;
+                          return src ? (
+                            <img
+                              key={i}
+                              src={src}
+                              alt={`Banner ${i + 1}`}
+                              className="h-10 w-16 rounded object-cover"
+                            />
+                          ) : null;
+                        })}
+                        {item.banners.length > 4 && (
+                          <span className="self-center text-xs text-surface-500">
+                            +{item.banners.length - 4}
+                          </span>
+                        )}
+                      </div>
                     ) : (
-                      <span className="text-xs text-surface-400">-</span>
+                      <span className="text-xs text-surface-400">—</span>
                     )}
                   </td>
                 )}
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button className="btn-secondary !px-3 !py-1" onClick={() => onEdit(item)} type="button">Edit</button>
-                    <button className="btn-secondary !px-3 !py-1 text-red-600" onClick={() => onDelete(item._id)} type="button">Delete</button>
+                    <button
+                      className="btn-secondary !px-3 !py-1"
+                      onClick={() => onEdit(item)}
+                      type="button"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn-secondary !px-3 !py-1 text-red-600"
+                      onClick={() => onDelete(item._id)}
+                      type="button"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </td>
               </tr>

@@ -37,6 +37,22 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Dynamic banner slides — falls back to static data if DB has none
+  const [bannerSlides, setBannerSlides] = useState(homeSlides);
+
+  // Fetch banner slides from category banners
+  useEffect(() => {
+    homeApi
+      .getBannerSlides()
+      .then((slides) => {
+        if (slides.length > 0) setBannerSlides(slides);
+        // else keep the static fallback already set in initial state
+      })
+      .catch(() => {
+        // On error keep static fallback — silently
+      });
+  }, []);
+
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -80,8 +96,8 @@ const HomePage = () => {
 
   return (
     <div>
-      <MainCarousel slides={homeSlides} />
-
+      {/* Dynamic carousel — uses category banners from DB, falls back to static slides */}
+      <MainCarousel slides={bannerSlides} />
 
       {error && (
         <div className="px-4 max-w-[97%] mx-auto">
@@ -111,3 +127,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
