@@ -17,13 +17,11 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   return (
     <>
-    <div className="relative">
-    <Navbar onOpenUserMenu={() => setIsSidebarOpen(true)}/>
+      <Navbar onOpenUserMenu={() => setIsSidebarOpen(true)}/>
       <UserSidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
       />
-    </div>
       <Routes>
         <Route path="/" element={<HomePage/>}/>
         <Route path="/activities" element={<HomePage/>}/>

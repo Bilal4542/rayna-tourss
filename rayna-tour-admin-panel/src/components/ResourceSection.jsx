@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
 import { apiService } from "../api";
+import { API_BASE_URL } from "../config/appConfig";
+
+const resolveImageUrl = (url) => {
+  if (!url) return "";
+  if (/^(http|https|data|blob):/.test(url)) return url;
+  const baseUrl = API_BASE_URL.replace(/\/api$/, "");
+  return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
+};
 
 const toSlug = (value = "") =>
   value
@@ -33,10 +41,11 @@ const emptySlot = () => ({
 const bannerToSlot = (raw) => {
   const url = typeof raw === "string" ? raw : String(raw?.url || "").trim();
   if (!url) return null;
+  const resolvedUrl = resolveImageUrl(url);
   return {
     id: uid(),
-    remoteUrl: url,
-    previewUrl: url,
+    remoteUrl: resolvedUrl,
+    previewUrl: resolvedUrl,
     file: null,
     title: typeof raw === "object" ? String(raw?.title || "") : "",
     subtext: typeof raw === "object" ? String(raw?.subtext || "") : "",
@@ -342,7 +351,8 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
                     {item.banners?.length > 0 ? (
                       <div className="flex gap-1.5 flex-wrap">
                         {item.banners.slice(0, 4).map((b, i) => {
-                          const src = typeof b === "string" ? b : b?.url;
+                          const rawSrc = typeof b === "string" ? b : b?.url;
+                          const src = resolveImageUrl(rawSrc);
                           return src ? (
                             <img
                               key={i}

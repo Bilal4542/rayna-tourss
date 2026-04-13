@@ -43,7 +43,7 @@ const HomePage = () => {
   // Fetch banner slides from category banners
   useEffect(() => {
     homeApi
-      .getBannerSlides()
+      .getBannerSlides(["activities", "activity", "tours"])
       .then((slides) => {
         if (slides.length > 0) setBannerSlides(slides);
         // else keep the static fallback already set in initial state

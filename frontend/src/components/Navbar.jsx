@@ -43,6 +43,15 @@ const Navbar = ({ onOpenUserMenu }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loadingCats, setLoadingCats] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     homeApi
@@ -61,7 +70,10 @@ const Navbar = ({ onOpenUserMenu }) => {
   }, []);
 
   return (
-    <nav className="w-full border-b border-gray-100 pb-4">
+    <nav
+      className={`sticky top-0 w-full z-50 bg-white transition-all duration-300 pb-4 ${isScrolled ? "shadow-md border-transparent" : "border-b border-gray-100"
+        }`}
+    >
       {/* Top Row: Logo & Actions */}
       <div className="max-w-[99%] mx-auto px-6 py-5 flex justify-between items-center">
         {/* Logo */}
@@ -178,10 +190,9 @@ const Navbar = ({ onOpenUserMenu }) => {
                   onClick={() => setActiveTab(cat._id)}
                   className={`
                     flex items-center space-x-0.5 justify-center px-5 py-2.5 rounded-xl font-medium transition-all duration-200
-                    ${
-                      isActive
-                        ? "bg-white text-gray-800 shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
-                        : "bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-white hover:shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+                    ${isActive
+                      ? "bg-white text-gray-800 shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+                      : "bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-white hover:shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
                     }
                   `}
                 >
