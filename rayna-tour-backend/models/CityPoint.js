@@ -5,7 +5,6 @@ const cityPointSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       minlength: 2,
       maxlength: 100,
@@ -13,7 +12,6 @@ const cityPointSchema = new mongoose.Schema(
     slug: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       lowercase: true,
     },
