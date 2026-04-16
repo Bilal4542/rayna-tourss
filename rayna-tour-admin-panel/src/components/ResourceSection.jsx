@@ -53,11 +53,22 @@ const bannerToSlot = (raw) => {
   };
 };
 
-const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
+const ResourceSection = ({
+  title,
+  resourcePath,
+  enableBanner = false,
+  enableCityCards = false,
+}) => {
   const [items, setItems] = useState([]);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [slots, setSlots] = useState([emptySlot()]);
+  const [countryName, setCountryName] = useState("");
+  const [cityCategories, setCityCategories] = useState(["activity"]);
+  const [cityStatus, setCityStatus] = useState("active");
+  const [cityImageUrl, setCityImageUrl] = useState("");
+  const [cityImagePreview, setCityImagePreview] = useState("");
+  const [cityImageFile, setCityImageFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -83,8 +94,26 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
     setName("");
     setSlug("");
     setSlots([emptySlot()]);
+    setCountryName("");
+    setCityCategories(["activity"]);
+    setCityStatus("active");
+    setCityImageUrl("");
+    setCityImagePreview("");
+    setCityImageFile(null);
     setSubmitting(false);
     setEditingId(null);
+  };
+
+  const onPickCityImage = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Only image files are allowed.");
+      return;
+    }
+    setError("");
+    setCityImageFile(file);
+    const preview = URL.createObjectURL(file);
+    setCityImagePreview(preview);
   };
 
   // ── Slot helpers ────────────────────────────────────────────────────────────
@@ -136,6 +165,22 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
         slug: slug.trim().toLowerCase() || toSlug(name),
       };
 
+      if (enableCityCards) {
+        payload.city_name = name.trim();
+        payload.country_name = countryName.trim();
+        payload.categories = cityCategories;
+        payload.status = cityStatus;
+
+        if (cityImageFile) {
+          const result = await apiService.uploadImage(cityImageFile);
+          const url = result?.url;
+          if (!url) throw new Error("Image upload failed. Please try again.");
+          payload.image = url;
+        } else if (cityImageUrl) {
+          payload.image = cityImageUrl;
+        }
+      }
+
       if (enableBanner) {
         // Only process slots that have an image (either an existing remote URL or a new file)
         const filled = slots.filter((s) => s.remoteUrl || s.file);
@@ -184,6 +229,18 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
     setEditingId(item._id);
     setName(item.name || "");
     setSlug(item.slug || "");
+    setCountryName(item.country_name || "");
+    const rawCats = item.categories || item.category || [];
+    const cats = Array.isArray(rawCats)
+      ? rawCats
+      : rawCats
+      ? [rawCats]
+      : [];
+    setCityCategories(cats.length ? cats : ["activity"]);
+    setCityStatus(item.status || "active");
+    setCityImageUrl(item.image || "");
+    setCityImagePreview(resolveImageUrl(item.image || ""));
+    setCityImageFile(null);
 
     const existing = Array.isArray(item.banners)
       ? item.banners.map(bannerToSlot).filter(Boolean)
@@ -238,6 +295,90 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
             </button>
           )}
         </div>
+
+        {enableCityCards && (
+          <div className="sm:col-span-3 grid gap-3 sm:grid-cols-3">
+            <input
+              className="input"
+              value={countryName}
+              onChange={(e) => setCountryName(e.target.value)}
+              placeholder="Country Name"
+            />
+            
+<div className="">
+<select
+              className="input"
+              multiple
+              value={cityCategories}
+              onChange={(e) =>
+                setCityCategories(
+                  Array.from(e.target.selectedOptions).map((o) => o.value)
+                )
+              }
+            >
+              
+              <option value="activity">activity</option>
+              <option value="holiday">holiday</option>
+              <option value="cruise">cruise</option>
+             
+            </select>
+            <p className="text-[12px] text-surface-500">Hold Ctrl+Shift to select multiple categories</p>
+</div>
+            <select
+              className="input"
+              value={cityStatus}
+              onChange={(e) => setCityStatus(e.target.value)}
+            >
+              <option value="active">active</option>
+              <option value="inactive">inactive</option>
+            </select>
+
+            <div className="sm:col-span-3 flex flex-col gap-2 rounded-xl border border-surface-200 bg-surface-50 p-4">
+              <p className="text-sm font-medium text-surface-700">City Image</p>
+              <div className="flex gap-4 items-start flex-wrap">
+                <div className="relative h-28 w-44 shrink-0 overflow-hidden rounded-lg border border-dashed border-surface-300 bg-white">
+                  {cityImagePreview ? (
+                    <img
+                      src={cityImagePreview}
+                      alt="City"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-surface-500 px-2 text-center">
+                      No image selected
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="btn-secondary w-fit cursor-pointer">
+                    Upload image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={submitting}
+                      onChange={(e) => onPickCityImage(e.target.files?.[0])}
+                    />
+                  </label>
+                  {cityImagePreview && (
+                    <button
+                      type="button"
+                      className="btn-secondary w-fit text-red-600"
+                      disabled={submitting}
+                      onClick={() => {
+                        setCityImageFile(null);
+                        setCityImagePreview("");
+                        setCityImageUrl("");
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Banner slots */}
         {enableBanner && (
@@ -325,6 +466,9 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Slug</th>
+              {enableCityCards && <th className="px-4 py-3">Category</th>}
+              {enableCityCards && <th className="px-4 py-3">Status</th>}
+              {enableCityCards && <th className="px-4 py-3">Image</th>}
               {enableBanner && <th className="px-4 py-3">Banners</th>}
               <th className="px-4 py-3">Actions</th>
             </tr>
@@ -334,7 +478,11 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
               <tr>
                 <td
                   className="px-4 py-4 text-surface-500"
-                  colSpan={enableBanner ? 4 : 3}
+                  colSpan={
+                    (enableBanner ? 1 : 0) +
+                    (enableCityCards ? 3 : 0) +
+                    3
+                  }
                 >
                   No records found.
                 </td>
@@ -346,6 +494,31 @@ const ResourceSection = ({ title, resourcePath, enableBanner = false }) => {
                   {item.name}
                 </td>
                 <td className="px-4 py-3 text-surface-600">{item.slug}</td>
+                {enableCityCards && (
+                  <td className="px-4 py-3 text-surface-600">
+                    {Array.isArray(item.categories) && item.categories.length > 0
+                      ? item.categories.join(", ")
+                      : item.category || "—"}
+                  </td>
+                )}
+                {enableCityCards && (
+                  <td className="px-4 py-3 text-surface-600">
+                    {item.status || "active"}
+                  </td>
+                )}
+                {enableCityCards && (
+                  <td className="px-4 py-3">
+                    {item.image ? (
+                      <img
+                        src={resolveImageUrl(item.image)}
+                        alt="City"
+                        className="h-10 w-16 rounded object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs text-surface-400">—</span>
+                    )}
+                  </td>
+                )}
                 {enableBanner && (
                   <td className="px-4 py-3">
                     {item.banners?.length > 0 ? (

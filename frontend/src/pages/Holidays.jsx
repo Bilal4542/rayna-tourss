@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import MainCarousel from '../components/MainCarousel'
 import { holidaySlides } from '../data/carouselData'
 import BestCities from '../components/BestCities'
-import { holidaysData } from '../data/BestCitiesData'
 import ActivitySection from '../components/ActivitySection'
 import { azerbaijanHolidayPackages, baliHolidayPackages, dubaiHolidayPackages, europeHolidayPackages, georgiaHolidayPackages, indiaHolidayPackages, kazakhstanHolidayPackages, saudiArabiaHolidayPackages, thailandHolidayPackages, uaeHolidayPackages, vietnamHolidayPackages } from '../data/holidayPageData/holidaysData'
 import ExploreMore from '../components/ExploreMore'
@@ -24,7 +23,11 @@ const Holidays = () => {
   return (
     <div>
       <MainCarousel slides={bannerSlides}/>
-      <BestCities mainHeading="Best Cities to Visit" cardHeadingPrefix="Holidays Packages in" data={holidaysData}/>
+      <BestCities
+        mainHeading="Best Cities to Visit"
+        cardHeadingPrefix="Holidays Packages in"
+        category="holiday"
+      />
        <ActivitySection title='Dubai Holidays Packages' activities={dubaiHolidayPackages}/>
        <ActivitySection title='Bali Holiday Packages' activities={baliHolidayPackages}/>
        <ActivitySection title='Europe Holiday Packages' activities={europeHolidayPackages}/>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Phone, User, ShoppingCart, Search } from "lucide-react";
 import logo from "../assets/raynatourslogo.webp";
-import { Link } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { homeApi } from "../services/homeApi";
 
 // Icon map: matches a category slug or lowercased name to an emoji icon
@@ -38,12 +38,28 @@ const getCategoryIcon = (name, slug) => {
   );
 };
 
+const ROUTE_MAP = {
+  activities: "/activity",
+  activity: "/activity",
+  holidays: "/holiday",
+  holiday: "/holiday",
+  visas: "/visa",
+  visa: "/visa",
+  cruises: "/cruises",
+  cruise: "/cruises",
+};
+
+const getCategoryRoute = (slug = "") => {
+  const key = String(slug || "").toLowerCase();
+  return ROUTE_MAP[key] || `/${key}`;
+};
+
 const Navbar = ({ onOpenUserMenu }) => {
-  const [activeTab, setActiveTab] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,10 +74,6 @@ const Navbar = ({ onOpenUserMenu }) => {
       .getCategories()
       .then((data) => {
         setCategories(data);
-        // Set the first category as active by default
-        if (data.length > 0 && !activeTab) {
-          setActiveTab(data[0]._id);
-        }
       })
       .catch(() => {
         // On error keep categories empty — UI degrades gracefully
@@ -180,25 +192,33 @@ const Navbar = ({ onOpenUserMenu }) => {
             ))
           ) : (
             categories.map((cat) => {
-              const isActive = activeTab === cat._id;
               const icon = getCategoryIcon(cat.name, cat.slug);
+              const to = getCategoryRoute(cat.slug);
 
               return (
-                <Link
-                  to={`/${cat.slug}`}
+                <NavLink
+                  to={to}
                   key={cat._id}
-                  onClick={() => setActiveTab(cat._id)}
-                  className={`
+                  className={({ isActive }) => {
+                    const isActivityHome = to === "/activity" && location?.pathname === "/";
+                    const active = isActive || isActivityHome;
+                    return `
                     flex items-center space-x-0.5 justify-center px-5 py-2.5 rounded-xl font-medium transition-all duration-200
-                    ${isActive
+                    ${active
                       ? "bg-white text-gray-800 shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
                       : "bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-white hover:shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
                     }
                   `}
+                  }
+                  aria-current={
+                    location?.pathname === to || (to === "/activity" && location?.pathname === "/")
+                      ? "page"
+                      : undefined
+                  }
                 >
                   <span>{icon}</span>
                   <span>{cat.name}</span>
-                </Link>
+                </NavLink>
               );
             })
           )}

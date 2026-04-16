@@ -37,6 +37,7 @@ import {
  */
 const TourCard = ({
   image,
+  fallbackImage,
   title,
   subtext,
   rating,
@@ -59,7 +60,7 @@ const TourCard = ({
     ? image
     : image
     ? [image]
-    : ["https://via.placeholder.com/600x400?text=Rayna+Tours"];
+    : [fallbackImage || "https://via.placeholder.com/600x400?text=Rayna+Tours"];
 
   const [currentImg, setCurrentImg] = useState(0);
 
@@ -115,6 +116,10 @@ const TourCard = ({
           src={imageArray[currentImg]}
           alt={title || subtext || "Tour"}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          onError={(e) => {
+            const next = fallbackImage || "https://via.placeholder.com/600x400?text=Rayna+Tours";
+            if (e.currentTarget.src !== next) e.currentTarget.src = next;
+          }}
         />
 
         {/* Ship name badge (cruise) */}

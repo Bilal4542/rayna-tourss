@@ -5,7 +5,6 @@ import MainCarousel from "../components/MainCarousel";
 import { homeSlides } from "../data/carouselData";
 import { homeTabs } from "../data/exploreMoreData/exploreMoreData";
 import { homeApi } from "../services/homeApi";
-import { citiesData } from "../data/BestCitiesData";
 import BestCities from "../components/BestCities";
 
 const mapProductToCard = (product) => {
@@ -100,7 +99,11 @@ const HomePage = () => {
     <div>
       {/* Dynamic carousel — uses category banners from DB, falls back to static slides */}
       <MainCarousel slides={bannerSlides} />
-<BestCities mainHeading="Best Cities to Visit" cardHeadingPrefix="Things to do in" data={citiesData}/>
+      <BestCities
+        mainHeading="Best Cities to Visit"
+        cardHeadingPrefix="Things to do in"
+        category="activity"
+      />
       {error && (
         <div className="px-4 max-w-[97%] mx-auto">
           <p className="text-sm text-red-600">{error}</p>

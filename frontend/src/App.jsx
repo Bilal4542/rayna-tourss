@@ -24,10 +24,16 @@ function App() {
       />
       <Routes>
         <Route path="/" element={<HomePage/>}/>
+        {/* Canonical routes (used by Navbar) */}
+        <Route path="/activity" element={<HomePage/>}/>
+        <Route path="/holiday" element={<Holidays/>}/>
+        <Route path="/visa" element={<Visas/>}/>
+        <Route path="/cruises" element={<Cruise/>}/>
+
+        {/* Backwards-compatible routes (keep existing links working) */}
         <Route path="/activities" element={<HomePage/>}/>
         <Route path="/holidays" element={<Holidays/>}/>
         <Route path="/visas" element={<Visas/>}/>
-        <Route path="/cruises" element={<Cruise/>}/>
         <Route path="/about-us" element={<AboutUs/>}/>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />

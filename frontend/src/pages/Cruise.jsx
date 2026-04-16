@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import MainCarousel from '../components/MainCarousel';
 import { cruiseSlides } from '../data/carouselData';
 import BestCities from '../components/BestCities';
-import { cruiseDepartureCities } from '../data/BestCitiesData';
 import CruiseSection from '../components/CruiseSection';
 import { specialSaverCruises, mscCruises, costaCruises, royalCaribbeanCruises } from '../data/cruisePageData/cruisePageData';
 import ExploreMore from '../components/ExploreMore';
@@ -24,7 +23,11 @@ const Cruise = () => {
   return (
     <div>
       <MainCarousel slides={bannerSlides} />
-      <BestCities mainHeading="Explore Cruises by Departure City" cardHeadingPrefix="Cruises from" data={cruiseDepartureCities} />
+      <BestCities
+        mainHeading="Explore Cruises by Departure City"
+        cardHeadingPrefix="Cruises from"
+        category="cruise"
+      />
       <CruiseSection title="Special Saver Cruise Packages" activities={specialSaverCruises} />
       <CruiseSection title="MSC Cruises Holidays" activities={mscCruises} />
       <CruiseSection title="Costa Cruises Holidays" activities={costaCruises} />

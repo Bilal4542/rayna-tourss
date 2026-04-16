@@ -1,15 +1,32 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import TourCard from "./TourCard";
+import { citiesApi } from "../services/citiesApi";
 
 export default function BestCities({
   mainHeading = "Best Cities to Visit",
   cardHeadingPrefix = "Things to do in",
-  data = [],
+  category,
 }) {
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const location = useLocation();
+  const [cities, setCities] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const fallbackImage = "https://via.placeholder.com/600x400?text=Rayna+Tours";
+
+  const currentCategory = useMemo(() => {
+    if (typeof category === "string" && category.trim()) return category.trim().toLowerCase();
+    const path = location?.pathname?.toLowerCase?.() || "";
+    if (path === "/" || path.includes("activity") || path.includes("activities")) return "activity";
+    if (path.includes("holiday") || path.includes("holidays")) return "holiday";
+    if (path.includes("cruise") || path.includes("cruises")) return "cruise";
+    return "";
+  }, [category, location?.pathname]);
 
   const checkScroll = () => {
     if (scrollRef.current) {
@@ -31,7 +48,41 @@ export default function BestCities({
     checkScroll();
     window.addEventListener("resize", checkScroll);
     return () => window.removeEventListener("resize", checkScroll);
-  }, [data]);
+  }, [cities]);
+
+  useEffect(() => {
+    if (!currentCategory) return;
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const result = await citiesApi.getBestCities(currentCategory);
+        if (cancelled) return;
+        // Don’t clear first (prevents blinking). Replace once we have data.
+        setCities(
+          (Array.isArray(result) ? result : []).filter((c) => {
+            const catsRaw = c?.categories ?? c?.category ?? [];
+            const cats = Array.isArray(catsRaw) ? catsRaw : catsRaw ? [catsRaw] : [];
+            const isInCategory = cats.map((x) => String(x || "").toLowerCase()).includes(currentCategory);
+            const isActive = String(c?.status || "").toLowerCase() === "active";
+            return isInCategory && isActive;
+          })
+        );
+      } catch (err) {
+        if (cancelled) return;
+        setError(err?.message || "Failed to fetch cities.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentCategory]);
 
   return (
     <section className="py-6 px-4 max-w-[97%] mx-auto font-sans">
@@ -75,16 +126,32 @@ export default function BestCities({
         onScroll={checkScroll}
         className="flex gap-5 overflow-x-auto pb-6 snap-x no-scrollbar scroll-smooth"
       >
-        {data.map((item) => (
+        {cities.map((item, idx) => (
           <TourCard
-            key={item.id}
-            image={item.image}
-            title={`${cardHeadingPrefix} ${item.name}`}
-            subtext={item.subtext || item.country}
+            key={`${item?.city_name || "city"}-${item?.country_name || "country"}-${idx}`}
+            image={item?.image || fallbackImage}
+            fallbackImage={fallbackImage}
+            title={`${cardHeadingPrefix} ${item?.city_name || ""}`.trim()}
+            subtext={item?.country_name || ""}
             variant="city"
           />
         ))}
       </div>
+      {loading && cities.length === 0 && (
+        <div className="pt-2">
+          <p className="text-sm text-gray-500">Loading cities...</p>
+        </div>
+      )}
+      {!loading && cities.length === 0 && (
+        <div className="pt-2">
+          <p className="text-sm text-gray-500">No cities found.</p>
+        </div>
+      )}
+      {error && (
+        <div className="pt-2">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
     </section>
   );
 }
