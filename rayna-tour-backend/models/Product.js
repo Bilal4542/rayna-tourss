@@ -99,6 +99,17 @@ const productSchema = new mongoose.Schema(
       type: pricingSchema,
       required: true,
     },
+    rating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 0,
+    },
+    reviews: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
   },
   {
     timestamps: true,

@@ -72,7 +72,7 @@ const TourCard = ({
   // ── Derived flags ────────────────────────────────────────────────────────────
   const hasMultipleImages = imageArray.length > 1;
   const hasDiscount = originalPrice && discountPercentage;
-  const hasReviews = rating && reviews;
+  const hasReviews = rating > 0 && reviews > 0;
   const showPrice = !hidePricing && price != null;
 
   const handlePrev = (e) => {

@@ -20,9 +20,9 @@ const initialProduct = {
   contentSections: [{ title: "", description: "" }, { title: "", description: "" }],
   actualPrice: "",
   discountPrice: "",
-  fromPrice: "",
-  toPrice: "",
   currency: "AED",
+  rating: '',
+  reviews: '',
 };
 
 const toSlug = (value = "") =>
@@ -61,12 +61,12 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
     () =>
       Boolean(
         form.name &&
-          (form.slug || toSlug(form.name)) &&
-          form.category &&
-          form.city &&
-          form.cityPoint &&
-          form.location &&
-          form.actualPrice !== ""
+        (form.slug || toSlug(form.name)) &&
+        form.category &&
+        form.city &&
+        form.cityPoint &&
+        form.location &&
+        form.actualPrice !== ""
       ),
     [form]
   );
@@ -113,10 +113,10 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
     pricing: {
       actualPrice: Number(form.actualPrice),
       discountPrice: form.discountPrice ? Number(form.discountPrice) : undefined,
-      fromPrice: form.fromPrice ? Number(form.fromPrice) : undefined,
-      toPrice: form.toPrice ? Number(form.toPrice) : undefined,
       currency: form.currency || "AED",
     },
+    rating: Number(form.rating),
+    reviews: Number(form.reviews),
   });
 
   const onSubmit = async (e) => {
@@ -170,17 +170,17 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           typeof entry === "string"
             ? entry
             : entry && typeof entry === "object"
-            ? entry.url || entry.secure_url || ""
-            : ""
+              ? entry.url || entry.secure_url || ""
+              : ""
         )
         .map((url) => String(url || "").trim())
         .filter(Boolean)
         .map((url) => ({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        url,
-        publicId: extractCloudinaryPublicId(url),
-        uploading: false,
-      })) || [];
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          url,
+          publicId: extractCloudinaryPublicId(url),
+          uploading: false,
+        })) || [];
 
     if (imageSlots.length === 0 || imageSlots[imageSlots.length - 1].url) {
       imageSlots.push(makeEmptyImageSlot());
@@ -199,9 +199,9 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       contentSections: (product.contentSections || []).map((item) => ({ title: item.title, description: item.description })),
       actualPrice: product.pricing?.actualPrice ?? "",
       discountPrice: product.pricing?.discountPrice ?? "",
-      fromPrice: product.pricing?.fromPrice ?? "",
-      toPrice: product.pricing?.toPrice ?? "",
       currency: product.pricing?.currency || "AED",
+      rating: product.rating || 0,
+      reviews: product.reviews || 0,
     });
   };
 
@@ -292,8 +292,8 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
         <input className="input" placeholder="Location" value={form.location} onChange={(e) => onChange("location", e.target.value)} required />
         <input className="input" type="number" placeholder="Actual price" value={form.actualPrice} onChange={(e) => onChange("actualPrice", e.target.value)} required />
         <input className="input" type="number" placeholder="Discount price" value={form.discountPrice} onChange={(e) => onChange("discountPrice", e.target.value)} />
-        <input className="input" type="number" placeholder="From price" value={form.fromPrice} onChange={(e) => onChange("fromPrice", e.target.value)} />
-        <input className="input" type="number" placeholder="To price" value={form.toPrice} onChange={(e) => onChange("toPrice", e.target.value)} />
+        <input className="input" type="number" step="0.1" max="5" placeholder="Rating (0-5)" value={form.rating} onChange={(e) => onChange("rating", e.target.value)} />
+        <input className="input" type="number" placeholder="Review count" value={form.reviews} onChange={(e) => onChange("reviews", e.target.value)} />
         <div className="md:col-span-2">
           <p className="mb-2 text-sm font-medium text-surface-700">Images</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

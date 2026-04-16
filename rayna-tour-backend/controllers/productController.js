@@ -44,6 +44,14 @@ const normalizePayload = (payload) => {
     normalized.contentSections = sanitizeTextBlocks(normalized.contentSections);
   }
 
+  if (normalized.rating !== undefined) {
+    normalized.rating = Number(normalized.rating) || 0;
+  }
+
+  if (normalized.reviews !== undefined) {
+    normalized.reviews = Number(normalized.reviews) || 0;
+  }
+
   return normalized;
 };
 
@@ -100,6 +108,8 @@ exports.createProduct = async (req, res) => {
       images,
       highlights,
       contentSections,
+      rating,
+      reviews,
     } = req.body;
 
     if (
@@ -133,6 +143,8 @@ exports.createProduct = async (req, res) => {
       images,
       highlights,
       contentSections,
+      rating,
+      reviews,
     });
 
     const product = await Product.create(payload);

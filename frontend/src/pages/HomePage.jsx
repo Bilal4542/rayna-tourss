@@ -7,29 +7,7 @@ import { homeTabs } from "../data/exploreMoreData/exploreMoreData";
 import { homeApi } from "../services/homeApi";
 import BestCities from "../components/BestCities";
 
-const mapProductToCard = (product) => {
-  const discountPrice = product?.pricing?.discountPrice;
-  const actualPrice = product?.pricing?.actualPrice;
-  const price = discountPrice ?? actualPrice ?? product?.pricing?.fromPrice ?? 0;
-
-  let discountPercentage = undefined;
-  if (
-    typeof discountPrice === "number" &&
-    typeof actualPrice === "number" &&
-    actualPrice > 0 &&
-    discountPrice < actualPrice
-  ) {
-    discountPercentage = Math.round(((actualPrice - discountPrice) / actualPrice) * 100);
-  }
-
-  return {
-    title: product.name,
-    image: product.images?.[0] || "https://via.placeholder.com/600x400?text=Rayna+Tours",
-    price,
-    originalPrice: actualPrice,
-    discountPercentage,
-  };
-};
+import { mapProductToCard } from "../utils/mapping";
 
 const HomePage = () => {
   const [categories, setCategories] = useState([]);
@@ -60,7 +38,15 @@ const HomePage = () => {
         setError("");
         const fetched = await homeApi.getCategories();
         setCategories(fetched);
-        if (fetched.length > 0) {
+        // Specifically find the activity category for the home page feature section
+        const activityCat = fetched.find(c => 
+          c.slug.toLowerCase().includes("activity") || 
+          c.name.toLowerCase().includes("activity") ||
+          c.slug.toLowerCase().includes("tour")
+        );
+        if (activityCat) {
+          setActiveCategoryId(activityCat._id);
+        } else if (fetched.length > 0) {
           setActiveCategoryId(fetched[0]._id);
         }
       } catch (err) {
