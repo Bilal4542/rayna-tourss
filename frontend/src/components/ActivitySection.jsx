@@ -62,16 +62,10 @@ const ActivitySection = ({ title, activities, desc, isGrid, hidePricing }) => {
         {activities?.map((item, index) => (
           <TourCard
             key={index}
-            image={item.image}
-            title={item.title}
-            rating={item.rating}
-            reviews={item.reviews}
-            price={item.price}
-            originalPrice={item.originalPrice}
-            discountPercentage={item.discountPercentage}
-            isNew={item.isNew}
+            {...item}
             hidePricing={hidePricing}
             isGrid={isGrid}
+            isNew={item.isNew}
             variant="activity"
           />
         ))}

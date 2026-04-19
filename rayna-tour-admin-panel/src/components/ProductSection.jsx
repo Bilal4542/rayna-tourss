@@ -23,6 +23,11 @@ const initialProduct = {
   currency: "AED",
   rating: '',
   reviews: '',
+  isProductNew: false,
+  cruiseLine: "",
+  departureCity: "",
+  itinerary: "",
+  duration: "",
 };
 
 const toSlug = (value = "") =>
@@ -117,6 +122,13 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
     },
     rating: Number(form.rating),
     reviews: Number(form.reviews),
+    isProductNew: !!form.isProductNew,
+    cruiseLine: form.cruiseLine?.trim() || undefined,
+    departureCity: form.departureCity?.trim() || undefined,
+    itinerary: form.itinerary
+      ? form.itinerary.split(",").map((s) => s.trim()).filter(Boolean)
+      : undefined,
+    duration: form.duration?.trim() || undefined,
   });
 
   const onSubmit = async (e) => {
@@ -202,6 +214,11 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       currency: product.pricing?.currency || "AED",
       rating: product.rating || 0,
       reviews: product.reviews || 0,
+      isProductNew: !!product.isProductNew,
+      cruiseLine: product.cruiseLine || "",
+      departureCity: product.departureCity || "",
+      itinerary: (product.itinerary || []).join(", "),
+      duration: product.duration || "",
     });
   };
 
@@ -294,6 +311,28 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
         <input className="input" type="number" placeholder="Discount price" value={form.discountPrice} onChange={(e) => onChange("discountPrice", e.target.value)} />
         <input className="input" type="number" step="0.1" max="5" placeholder="Rating (0-5)" value={form.rating} onChange={(e) => onChange("rating", e.target.value)} />
         <input className="input" type="number" placeholder="Review count" value={form.reviews} onChange={(e) => onChange("reviews", e.target.value)} />
+        
+        <label className="flex items-center gap-2 cursor-pointer p-2 border border-surface-200 rounded-xl bg-surface-50/50">
+          <input 
+            type="checkbox" 
+            checked={form.isProductNew} 
+            onChange={(e) => onChange("isProductNew", e.target.checked)}
+            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+          />
+          <span className="text-sm font-medium text-surface-700">Mark as "New"</span>
+        </label>
+
+        {/* Cruise Specific Fields */}
+        {categories.find(c => c._id === form.category)?.name?.toLowerCase() === "cruises" && (
+          <div className="md:col-span-2 grid gap-3 md:grid-cols-2 border-l-4 border-blue-500 pl-4 py-2 bg-blue-50/20">
+            <h3 className="md:col-span-2 text-sm font-bold text-blue-700 uppercase tracking-wider">Cruise Details</h3>
+            <input className="input border-blue-200 focus:border-blue-500" placeholder="Cruise Line (e.g. MSC, Costa)" value={form.cruiseLine} onChange={(e) => onChange("cruiseLine", e.target.value)} />
+            <input className="input border-blue-200 focus:border-blue-500" placeholder="Departure City" value={form.departureCity} onChange={(e) => onChange("departureCity", e.target.value)} />
+            <input className="input border-blue-200 focus:border-blue-500" placeholder="Duration (e.g. 7 Nights)" value={form.duration} onChange={(e) => onChange("duration", e.target.value)} />
+            <input className="input border-blue-200 focus:border-blue-500" placeholder="Itinerary (Comma separated ports)" value={form.itinerary} onChange={(e) => onChange("itinerary", e.target.value)} />
+          </div>
+        )}
+
         <div className="md:col-span-2">
           <p className="mb-2 text-sm font-medium text-surface-700">Images</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

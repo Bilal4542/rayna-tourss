@@ -59,8 +59,8 @@ const TourCard = ({
   const imageArray = Array.isArray(image)
     ? image
     : image
-    ? [image]
-    : [fallbackImage || "https://via.placeholder.com/600x400?text=Rayna+Tours"];
+      ? [image]
+      : [fallbackImage || "https://via.placeholder.com/600x400?text=Rayna+Tours"];
 
   const [currentImg, setCurrentImg] = useState(0);
 
@@ -88,10 +88,10 @@ const TourCard = ({
   const widthClass = isGrid
     ? "w-full"
     : isCruise
-    ? "shrink-0 w-80 md:w-96"
-    : isCity
-    ? "shrink-0 w-52"
-    : "shrink-0 w-72";
+      ? "shrink-0 w-80 md:w-96"
+      : isCity
+        ? "shrink-0 w-52"
+        : "shrink-0 w-72";
 
   // ── Image height ─────────────────────────────────────────────────────────────
   const imgHeight = isCruise ? "h-56" : isCity ? "h-48" : "h-48";
@@ -100,16 +100,15 @@ const TourCard = ({
   const wrapperClass = isCity
     ? "bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all"
     : isCruise
-    ? "bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden flex flex-col"
-    : "bg-white rounded-2xl";
+      ? "bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden flex flex-col"
+      : "bg-white rounded-2xl";
 
   return (
     <div className={`group cursor-pointer ${widthClass} ${wrapperClass}`}>
       {/* ── Image Block ───────────────────────────────────────────────────── */}
       <div
-        className={`relative ${imgHeight} w-full overflow-hidden ${
-          isCity ? "m-2 rounded-2xl" : isCruise ? "" : "rounded-2xl"
-        }`}
+        className={`relative ${imgHeight} w-full overflow-hidden ${isCity ? "m-2 rounded-2xl" : isCruise ? "" : "rounded-2xl"
+          }`}
         style={isCity ? { width: "calc(100% - 16px)" } : {}}
       >
         <img
@@ -160,9 +159,8 @@ const TourCard = ({
               {imageArray.map((_, idx) => (
                 <div
                   key={idx}
-                  className={`h-2 rounded-full transition-all duration-300 bg-white ${
-                    idx === currentImg ? "w-6 opacity-100" : "w-2 opacity-60"
-                  }`}
+                  className={`h-2 rounded-full transition-all duration-300 bg-white ${idx === currentImg ? "w-6 opacity-100" : "w-2 opacity-60"
+                    }`}
                 />
               ))}
             </div>
@@ -172,24 +170,22 @@ const TourCard = ({
 
       {/* ── Content Block ─────────────────────────────────────────────────── */}
       <div
-        className={`${
-          isCity
-            ? "p-4 pt-1 relative overflow-hidden"
-            : isCruise
+        className={`${isCity
+          ? "p-4 pt-1 relative overflow-hidden"
+          : isCruise
             ? "p-4 md:p-5 flex flex-col flex-grow"
             : "mt-3 space-y-1"
-        }`}
+          }`}
       >
         {/* Title */}
         {title && (
           <h3
-            className={`font-semibold leading-tight ${
-              isCity
-                ? "text-gray-800 text-sm mb-1 leading-4 md:leading-5 line-clamp-2"
-                : isCruise
+            className={`font-semibold leading-tight ${isCity
+              ? "text-gray-800 text-sm mb-1 leading-4 md:leading-5 line-clamp-2"
+              : isCruise
                 ? "font-bold text-base text-gray-800 mb-2 line-clamp-2"
                 : "text-sm md:text-base text-gray-800 truncate"
-            }`}
+              }`}
           >
             {title}
           </h3>
@@ -198,6 +194,15 @@ const TourCard = ({
         {/* Subtext / country (city cards) */}
         {subtext && (
           <p className="text-gray-400 text-xs font-medium">{subtext}</p>
+        )}
+
+        {/* ── "New" Badge ────────────────────────────────────────────────── */}
+        {isNew && (
+          <div className="flex items-center mt-1 mb-2">
+            <span className="text-[14px] font-semibold">
+              New
+            </span>
+          </div>
         )}
 
         {/* ── Cruise-specific info row ─────────────────────────────────── */}
@@ -310,11 +315,6 @@ const TourCard = ({
             ) : (
               /* Activity/holiday pricing layout */
               <>
-                {isNew && (
-                  <span className="text-sm font-semibold text-gray-600">
-                    New
-                  </span>
-                )}
                 <div className="flex items-baseline gap-2">
                   <p className="text-xs text-gray-400 font-medium">from</p>
                   {hasDiscount && (

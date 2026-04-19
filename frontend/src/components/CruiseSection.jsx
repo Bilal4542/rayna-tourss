@@ -55,14 +55,7 @@ const CruiseSection = ({ title, activities }) => {
         {activities?.map((item, index) => (
           <TourCard
             key={index}
-            image={item.images || item.image}
-            title={item.title}
-            shipName={item.shipName}
-            departure={item.departure}
-            duration={item.duration}
-            departures={item.departures}
-            itinerary={item.itinerary}
-            price={item.price}
+            {...item}
             variant="cruise"
           />
         ))}

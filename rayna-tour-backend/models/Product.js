@@ -110,6 +110,26 @@ const productSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    isProductNew: {
+      type: Boolean,
+      default: false,
+    },
+    cruiseLine: {
+      type: String,
+      trim: true,
+    },
+    departureCity: {
+      type: String,
+      trim: true,
+    },
+    itinerary: {
+      type: [String],
+      default: [],
+    },
+    duration: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,

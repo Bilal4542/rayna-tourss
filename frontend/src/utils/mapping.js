@@ -38,10 +38,10 @@ export const mapProductToCard = (product) => {
     discountPercentage,
     rating: product.rating,
     reviews: product.reviews,
-    isNew: product.isNew,
+    isNew: product.isProductNew,
     // Cruise-specific fields
-    shipName: product.shipName,
-    departure: product.departure,
+    shipName: product.cruiseLine,
+    departure: product.departureCity,
     duration: product.duration,
     departures: product.departures,
     itinerary: product.itinerary,

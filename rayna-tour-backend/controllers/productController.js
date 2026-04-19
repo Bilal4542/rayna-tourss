@@ -52,6 +52,10 @@ const normalizePayload = (payload) => {
     normalized.reviews = Number(normalized.reviews) || 0;
   }
 
+  if (normalized.isProductNew !== undefined) {
+    normalized.isProductNew = Boolean(normalized.isProductNew);
+  }
+
   return normalized;
 };
 
@@ -110,6 +114,11 @@ exports.createProduct = async (req, res) => {
       contentSections,
       rating,
       reviews,
+      isProductNew,
+      cruiseLine,
+      departureCity,
+      itinerary,
+      duration,
     } = req.body;
 
     if (
@@ -145,6 +154,11 @@ exports.createProduct = async (req, res) => {
       contentSections,
       rating,
       reviews,
+      isProductNew,
+      cruiseLine,
+      departureCity,
+      itinerary,
+      duration,
     });
 
     const product = await Product.create(payload);
