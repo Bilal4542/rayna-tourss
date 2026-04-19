@@ -99,7 +99,7 @@ const Holidays = () => {
           .map((group) => (
             <ActivitySection
               key={group.cityId || group.cityName}
-              title={`${group.cityName} ${activeCategory?.name || "Holiday"} Packages`}
+              title={`Best ${activeCategory?.name || "Holidays"} in ${group.cityName}`}
               activities={group.products.map(mapProductToCard)}
             />
           ))

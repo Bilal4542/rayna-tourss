@@ -89,7 +89,7 @@ const Visas = () => {
         groupedByCity.map((group) => (
           <ActivitySection 
             key={group.cityId || group.cityName}
-            title={group.cityName.toLowerCase() === "global" ? 'Apply for Your Visa Hassle-Free' : `Visa Options for ${group.cityName}`}
+            title={group.cityName.toLowerCase() === "global" ? 'Apply for Your Visa Hassle-Free' : `Best ${activeCategory?.name || "Visas"} in ${group.cityName}`}
             desc={group.cityName.toLowerCase() === "global" ? 'Skip long queues—apply for your visa online effortlessly from anywhere.' : `Fast, easy, and secure international visa application.`}
             activities={group.products.map(mapProductToCard)} 
             isGrid={true} 

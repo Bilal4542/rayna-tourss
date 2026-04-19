@@ -28,6 +28,7 @@ const initialProduct = {
   departureCity: "",
   itinerary: "",
   duration: "",
+  manualCity: "",
 };
 
 const toSlug = (value = "") =>
@@ -68,8 +69,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
         form.name &&
         (form.slug || toSlug(form.name)) &&
         form.category &&
-        form.city &&
-        form.cityPoint &&
+        (form.manualCity || (form.city && form.cityPoint)) &&
         form.location &&
         form.actualPrice !== ""
       ),
@@ -105,8 +105,9 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
     name: form.name.trim(),
     slug: (form.slug.trim() || toSlug(form.name)).toLowerCase(),
     category: form.category,
-    city: form.city,
-    cityPoint: form.cityPoint,
+    city: form.manualCity ? null : form.city,
+    cityPoint: form.manualCity ? null : form.cityPoint,
+    manualCity: form.manualCity.trim() || undefined,
     location: form.location.trim(),
     images,
     highlights: form.highlights
@@ -129,6 +130,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       ? form.itinerary.split(",").map((s) => s.trim()).filter(Boolean)
       : undefined,
     duration: form.duration?.trim() || undefined,
+    manualCity: form.manualCity?.trim() || undefined,
   });
 
   const onSubmit = async (e) => {
@@ -219,6 +221,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       departureCity: product.departureCity || "",
       itinerary: (product.itinerary || []).join(", "),
       duration: product.duration || "",
+      manualCity: product.manualCity || "",
     });
   };
 
@@ -298,14 +301,41 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           <option value="">Select category</option>
           {categories.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}
         </select>
-        <select className="input" value={form.city} onChange={(e) => onChange("city", e.target.value)} required>
+        <select className="input" value={form.city} onChange={(e) => onChange("city", e.target.value)} required={!form.manualCity} disabled={!!form.manualCity}>
           <option value="">Select city</option>
           {cities.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}
         </select>
-        <select className="input" value={form.cityPoint} onChange={(e) => onChange("cityPoint", e.target.value)} required>
+        <select className="input" value={form.cityPoint} onChange={(e) => onChange("cityPoint", e.target.value)} required={!form.manualCity} disabled={!!form.manualCity}>
           <option value="">Select city point</option>
-          {cityPoints.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}
+          {cityPoints.filter(cp => cp.city?._id === form.city || cp.city === form.city).map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}
         </select>
+        
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 cursor-pointer p-2 border border-surface-200 rounded-xl bg-surface-50/50">
+            <input 
+              type="checkbox" 
+              checked={!!form.manualCity || form.isManualMode} 
+              onChange={(e) => {
+                if (!e.target.checked) {
+                  setForm(prev => ({ ...prev, manualCity: "", isManualMode: false }));
+                } else {
+                  setForm(prev => ({ ...prev, city: "", cityPoint: "", isManualMode: true }));
+                }
+              }}
+              className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm font-medium text-surface-700">New City (Manual)</span>
+          </label>
+          {(form.manualCity || form.isManualMode) && (
+            <input 
+              className="input border-orange-200 focus:border-orange-500" 
+              placeholder="Enter City Name Manually" 
+              value={form.manualCity} 
+              onChange={(e) => onChange("manualCity", e.target.value)} 
+              required 
+            />
+          )}
+        </div>
         <input className="input" placeholder="Location" value={form.location} onChange={(e) => onChange("location", e.target.value)} required />
         <input className="input" type="number" placeholder="Actual price" value={form.actualPrice} onChange={(e) => onChange("actualPrice", e.target.value)} required />
         <input className="input" type="number" placeholder="Discount price" value={form.discountPrice} onChange={(e) => onChange("discountPrice", e.target.value)} />

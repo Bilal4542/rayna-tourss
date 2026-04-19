@@ -33,6 +33,7 @@ export const mapProductToCard = (product) => {
   return {
     title: product.name || "",
     image: images,
+    subtext: product.city?.name || "",
     price,
     originalPrice: actualPrice,
     discountPercentage,

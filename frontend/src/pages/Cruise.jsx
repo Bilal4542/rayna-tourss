@@ -97,7 +97,7 @@ const Cruise = () => {
           .map((group) => (
             <CruiseSection 
               key={group.cityId || group.cityName}
-              title={`${group.cityName} ${activeCategory?.name || "Cruise"} Packages`} 
+              title={`Best ${activeCategory?.name || "Cruises"} in ${group.cityName}`} 
               activities={group.products.map(mapProductToCard)} 
             />
           ))

@@ -59,8 +59,21 @@ const normalizePayload = (payload) => {
   return normalized;
 };
 
-const ensureReferencesExist = async ({ category, city, cityPoint }) => {
+const ensureReferencesExist = async ({ category, city, cityPoint, manualCity }) => {
   const checks = [];
+  const ok = { ok: true };
+
+  if (manualCity) {
+    // If manual city is used, we still need to check category if provided
+    if (category !== undefined) {
+      if (!isValidObjectId(category)) {
+        return { ok: false, message: "Invalid category id." };
+      }
+      const catExists = await Category.exists({ _id: category });
+      if (!catExists) return { ok: false, message: "Category not found." };
+    }
+    return ok;
+  }
 
   if (category !== undefined) {
     if (!isValidObjectId(category)) {
@@ -119,24 +132,25 @@ exports.createProduct = async (req, res) => {
       departureCity,
       itinerary,
       duration,
+      manualCity,
     } = req.body;
 
     if (
       !name ||
       !slug ||
       !category ||
-      !city ||
-      !cityPoint ||
+      (!city && !manualCity) ||
+      (!cityPoint && !manualCity) ||
       !location ||
       !pricing
     ) {
       return res.status(400).json({
         message:
-          "name, slug, category, city, cityPoint, location and pricing are required.",
+          "name, slug, category, location, and pricing are required. Also provide either a city/cityPoint or a manualCity.",
       });
     }
 
-    const referenceCheck = await ensureReferencesExist({ category, city, cityPoint });
+    const referenceCheck = await ensureReferencesExist({ category, city, cityPoint, manualCity });
     if (!referenceCheck.ok) {
       return res.status(400).json({ message: referenceCheck.message });
     }
@@ -159,6 +173,7 @@ exports.createProduct = async (req, res) => {
       departureCity,
       itinerary,
       duration,
+      manualCity,
     });
 
     const product = await Product.create(payload);
@@ -260,12 +275,12 @@ exports.getProductsGroupedByCity = async (req, res) => {
 
     const groupedMap = new Map();
     products.forEach((product) => {
-      const cityId = product.city?._id?.toString() || "unknown";
-      const cityName = product.city?.name || "Other";
+      const cityId = product.city?._id?.toString() || product.manualCity || "unknown";
+      const cityName = product.city?.name || product.manualCity || "Other";
 
       if (!groupedMap.has(cityId)) {
         groupedMap.set(cityId, {
-          cityId: cityId === "unknown" ? null : cityId,
+          cityId: product.city ? cityId : null,
           cityName,
           products: [],
         });
@@ -334,7 +349,12 @@ exports.updateProduct = async (req, res) => {
     }
 
     const payload = normalizePayload(req.body);
-    const referenceCheck = await ensureReferencesExist(payload);
+    const referenceCheck = await ensureReferencesExist({ 
+      category: payload.category, 
+      city: payload.city, 
+      cityPoint: payload.cityPoint, 
+      manualCity: payload.manualCity 
+    });
     if (!referenceCheck.ok) {
       return res.status(400).json({ message: referenceCheck.message });
     }
