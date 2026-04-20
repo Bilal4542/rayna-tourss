@@ -2,6 +2,21 @@
  * Universal mapper to convert backend product objects into the props expected by the TourCard component.
  * Supports activity, holiday, visa, and cruise variants.
  */
+
+/**
+ * Maps a category slug (from DB) to the frontend plural URL segment.
+ * e.g. "activity" → "activities", "holiday" → "holidays"
+ */
+export const toCategoryRoute = (categorySlug = "") => {
+  const s = (categorySlug || "").toLowerCase().trim();
+  if (s.includes("activity") || s.includes("activities") || s.includes("tour")) return "activities";
+  if (s.includes("holiday") || s.includes("holidays")) return "holidays";
+  if (s.includes("cruise") || s.includes("cruises")) return "cruises";
+  if (s.includes("visa") || s.includes("visas")) return "visas";
+  // Fallback: naively pluralise
+  return s.endsWith("s") ? s : `${s}s`;
+};
+
 export const mapProductToCard = (product) => {
   if (!product) return {};
 
@@ -24,16 +39,19 @@ export const mapProductToCard = (product) => {
   }
 
   // Handle images (array or single string)
-  const images = Array.isArray(product.images) && product.images.length > 0 
-    ? product.images 
-    : product.image 
-    ? [product.image]
-    : [];
+  const images =
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images
+      : product.image
+      ? [product.image]
+      : [];
+
+  const rawCategorySlug = product.category?.slug || "";
 
   return {
     title: product.name || "",
     image: images,
-    subtext: product.city?.name || "",
+    subtext: product.city?.name || product.manualCity || "",
     price,
     originalPrice: actualPrice,
     discountPercentage,
@@ -46,5 +64,8 @@ export const mapProductToCard = (product) => {
     duration: product.duration,
     departures: product.departures,
     itinerary: product.itinerary,
+    // Navigation — used by TourCard to build its <Link>
+    slug: product.slug,
+    categorySlug: toCategoryRoute(rawCategorySlug),
   };
 };

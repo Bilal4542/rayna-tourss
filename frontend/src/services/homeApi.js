@@ -68,5 +68,14 @@ export const homeApi = {
       throw new Error(getErrorMessage(error));
     }
   },
+
+  async getProductBySlug(slug) {
+    try {
+      const { data } = await api.get(`/products/slug/${slug}`);
+      return data?.data || null;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
 };
 

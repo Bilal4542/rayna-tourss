@@ -10,6 +10,7 @@ import Cruise from "./pages/Cruise";
 import AboutUs from "./pages/AboutUs";
 import Footer from "./components/Footer";
 import UserSidebar from "./components/UserSidebar";
+import ProductDetail from "./pages/ProductDetail";
 import { useState } from "react";
 
 
@@ -24,16 +25,24 @@ function App() {
       />
       <Routes>
         <Route path="/" element={<HomePage/>}/>
-        {/* Canonical routes (used by Navbar) */}
-        <Route path="/activity" element={<Activities/>}/>
-        <Route path="/holiday" element={<Holidays/>}/>
-        <Route path="/visa" element={<Visas/>}/>
-        <Route path="/cruises" element={<Cruise/>}/>
 
-        {/* Backwards-compatible routes (keep existing links working) */}
+        {/* ── Category listing pages ── */}
+        <Route path="/activity" element={<Activities/>}/>
         <Route path="/activities" element={<Activities/>}/>
+        <Route path="/holiday" element={<Holidays/>}/>
         <Route path="/holidays" element={<Holidays/>}/>
+        <Route path="/visa" element={<Visas/>}/>
         <Route path="/visas" element={<Visas/>}/>
+        <Route path="/cruises" element={<Cruise/>}/>
+        <Route path="/cruise" element={<Cruise/>}/>
+
+        {/* ── Dynamic product detail pages (plural slugs) ── */}
+        <Route path="/activities/:slug" element={<ProductDetail/>}/>
+        <Route path="/holidays/:slug" element={<ProductDetail/>}/>
+        <Route path="/visas/:slug" element={<ProductDetail/>}/>
+        <Route path="/cruises/:slug" element={<ProductDetail/>}/>
+
+        {/* ── Other pages ── */}
         <Route path="/about-us" element={<AboutUs/>}/>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />

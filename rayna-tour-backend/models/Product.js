@@ -6,14 +6,40 @@ const textBlockSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 120,
+      maxlength: 200,
     },
     description: {
       type: String,
       required: true,
       trim: true,
-      maxlength: 2000,
+      maxlength: 3000,
     },
+  },
+  { _id: false }
+);
+
+const itinerarySchema = new mongoose.Schema(
+  {
+    day: { type: Number, required: true },
+    title: { type: String, trim: true },
+    description: { type: String, trim: true },
+  },
+  { _id: false }
+);
+
+const stepSchema = new mongoose.Schema(
+  {
+    step: { type: Number, required: true },
+    title: { type: String, trim: true },
+    description: { type: String, trim: true },
+  },
+  { _id: false }
+);
+
+const faqSchema = new mongoose.Schema(
+  {
+    question: { type: String, required: true, trim: true },
+    answer: { type: String, required: true, trim: true },
   },
   { _id: false }
 );
@@ -125,12 +151,45 @@ const productSchema = new mongoose.Schema(
       trim: true,
     },
     itinerary: {
-      type: [String],
+      type: [itinerarySchema],
       default: [],
     },
     duration: {
       type: String,
       trim: true,
+    },
+    inclusions: {
+      type: [String],
+      default: [],
+    },
+    exclusions: {
+      type: [String],
+      default: [],
+    },
+    applicationSteps: {
+      type: [stepSchema],
+      default: [],
+    },
+    documentsRequired: {
+      type: [String],
+      default: [],
+    },
+    guestPolicy: {
+      type: String,
+      trim: true,
+    },
+    importantInformation: {
+      type: String,
+      trim: true,
+    },
+    faq: {
+      type: [faqSchema],
+      default: [],
+    },
+    bookingType: {
+      type: String,
+      enum: ["direct", "inquiry"],
+      default: "inquiry",
     },
   },
   {

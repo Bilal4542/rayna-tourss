@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ArrowRight,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 /**
  * TourCard — Universal card for the entire website.
@@ -34,6 +35,8 @@ import {
  * @prop {string}          variant      - "city" | "cruise" | "activity" (auto-detected if omitted)
  * @prop {boolean}         hidePricing  - Force-hide the pricing block
  * @prop {boolean}         isGrid       - Use full-width grid layout instead of fixed scroll width
+ * @prop {string}          slug         - Product slug for dynamic routing
+ * @prop {string}          categorySlug - Category slug (e.g., 'activities', 'holidays')
  */
 const TourCard = ({
   image,
@@ -54,6 +57,8 @@ const TourCard = ({
   variant,
   hidePricing = false,
   isGrid = false,
+  slug,
+  categorySlug,
 }) => {
   // ── Normalise images into an array ──────────────────────────────────────────
   const imageArray = Array.isArray(image)
@@ -103,8 +108,26 @@ const TourCard = ({
       ? "bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden flex flex-col"
       : "bg-white rounded-2xl";
 
+  // ── Navigation Logic ────────────────────────────────────────────────────────
+  const detailPath = slug && categorySlug ? `/${categorySlug}/${slug}` : null;
+
+  const CardWrapper = ({ children }) => {
+    if (isCity || !detailPath) {
+      return (
+        <div className={`group cursor-pointer ${widthClass} ${wrapperClass}`}>
+          {children}
+        </div>
+      );
+    }
+    return (
+      <Link to={detailPath} className={`group cursor-pointer block ${widthClass} ${wrapperClass}`}>
+        {children}
+      </Link>
+    );
+  };
+
   return (
-    <div className={`group cursor-pointer ${widthClass} ${wrapperClass}`}>
+    <CardWrapper>
       {/* ── Image Block ───────────────────────────────────────────────────── */}
       <div
         className={`relative ${imgHeight} w-full overflow-hidden ${isCity ? "m-2 rounded-2xl" : isCruise ? "" : "rounded-2xl"
@@ -345,7 +368,7 @@ const TourCard = ({
           </div>
         )}
       </div>
-    </div>
+    </CardWrapper>
   );
 };
 

@@ -29,6 +29,15 @@ const initialProduct = {
   itinerary: "",
   duration: "",
   manualCity: "",
+  inclusions: "",
+  exclusions: "",
+  applicationSteps: [{ step: 1, title: "", description: "" }],
+  documentsRequired: "",
+  guestPolicy: "",
+  importantInformation: "",
+  faq: [{ question: "", answer: "" }],
+  bookingType: "inquiry",
+  itinerary: [{ day: 1, title: "", description: "" }],
 };
 
 const toSlug = (value = "") =>
@@ -94,7 +103,17 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
     fetchProducts(page);
   }, [page]);
 
-  const onChange = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+  const onChange = (key, value) => {
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      // Auto-generate slug if name changes AND user hasn't typed a custom slug yet
+      // or if current slug matches the slugified version of the previous name
+      if (key === "name" && (!prev.slug || prev.slug === toSlug(prev.name))) {
+        next.slug = toSlug(value);
+      }
+      return next;
+    });
+  };
 
   const reset = () => {
     setForm({ ...initialProduct, images: [makeEmptyImageSlot()] });
@@ -126,11 +145,17 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
     isProductNew: !!form.isProductNew,
     cruiseLine: form.cruiseLine?.trim() || undefined,
     departureCity: form.departureCity?.trim() || undefined,
-    itinerary: form.itinerary
-      ? form.itinerary.split(",").map((s) => s.trim()).filter(Boolean)
-      : undefined,
     duration: form.duration?.trim() || undefined,
     manualCity: form.manualCity?.trim() || undefined,
+    inclusions: form.inclusions ? form.inclusions.split(",").map(s => s.trim()).filter(Boolean) : [],
+    exclusions: form.exclusions ? form.exclusions.split(",").map(s => s.trim()).filter(Boolean) : [],
+    applicationSteps: form.applicationSteps.filter(s => s.title || s.description),
+    documentsRequired: form.documentsRequired ? form.documentsRequired.split(",").map(s => s.trim()).filter(Boolean) : [],
+    guestPolicy: form.guestPolicy?.trim() || undefined,
+    importantInformation: form.importantInformation?.trim() || undefined,
+    faq: form.faq.filter(f => f.question || f.answer),
+    bookingType: form.bookingType || "inquiry",
+    itinerary: form.itinerary.filter(i => i.title || i.description),
   });
 
   const onSubmit = async (e) => {
@@ -222,6 +247,15 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       itinerary: (product.itinerary || []).join(", "),
       duration: product.duration || "",
       manualCity: product.manualCity || "",
+      inclusions: (product.inclusions || []).join(", "),
+      exclusions: (product.exclusions || []).join(", "),
+      applicationSteps: product.applicationSteps?.length ? product.applicationSteps.map(s => ({ step: s.step, title: s.title, description: s.description })) : [{ step: 1, title: "", description: "" }],
+      documentsRequired: (product.documentsRequired || []).join(", "),
+      guestPolicy: product.guestPolicy || "",
+      importantInformation: product.importantInformation || "",
+      faq: product.faq?.length ? product.faq.map(f => ({ question: f.question, answer: f.answer })) : [{ question: "", answer: "" }],
+      bookingType: product.bookingType || "inquiry",
+      itinerary: product.itinerary?.length ? product.itinerary.map(i => ({ day: i.day, title: i.title, description: i.description })) : [{ day: 1, title: "", description: "" }],
     });
   };
 
@@ -352,6 +386,14 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           <span className="text-sm font-medium text-surface-700">Mark as "New"</span>
         </label>
 
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold text-surface-500 uppercase tracking-wider ml-1">Booking Type</label>
+          <select className="input" value={form.bookingType} onChange={(e) => onChange("bookingType", e.target.value)}>
+            <option value="inquiry">Inquiry Only</option>
+            <option value="direct">Direct Booking (Calendar)</option>
+          </select>
+        </div>
+
         {/* Cruise Specific Fields */}
         {categories.find(c => c._id === form.category)?.name?.toLowerCase() === "cruises" && (
           <div className="md:col-span-2 grid gap-3 md:grid-cols-2 border-l-4 border-blue-500 pl-4 py-2 bg-blue-50/20">
@@ -359,9 +401,134 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
             <input className="input border-blue-200 focus:border-blue-500" placeholder="Cruise Line (e.g. MSC, Costa)" value={form.cruiseLine} onChange={(e) => onChange("cruiseLine", e.target.value)} />
             <input className="input border-blue-200 focus:border-blue-500" placeholder="Departure City" value={form.departureCity} onChange={(e) => onChange("departureCity", e.target.value)} />
             <input className="input border-blue-200 focus:border-blue-500" placeholder="Duration (e.g. 7 Nights)" value={form.duration} onChange={(e) => onChange("duration", e.target.value)} />
-            <input className="input border-blue-200 focus:border-blue-500" placeholder="Itinerary (Comma separated ports)" value={form.itinerary} onChange={(e) => onChange("itinerary", e.target.value)} />
           </div>
         )}
+
+        {/* Holiday / Cruise Itinerary */}
+        {(["holidays", "cruises"].includes(categories.find(c => c._id === form.category)?.name?.toLowerCase())) && (
+          <div className="md:col-span-2 space-y-3 py-4 border-t border-surface-100">
+            <h3 className="text-sm font-bold text-surface-700 uppercase tracking-wider">Day-wise Itinerary</h3>
+            {form.itinerary.map((item, idx) => (
+              <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 bg-surface-50/50 rounded-xl border border-surface-200">
+                <div className="md:col-span-1">
+                  <input type="number" className="input" placeholder="Day" value={item.day} onChange={(e) => {
+                    const next = [...form.itinerary];
+                    next[idx].day = e.target.value;
+                    setForm(p => ({ ...p, itinerary: next }));
+                  }} />
+                </div>
+                <div className="md:col-span-4">
+                  <input className="input" placeholder="Title" value={item.title} onChange={(e) => {
+                    const next = [...form.itinerary];
+                    next[idx].title = e.target.value;
+                    setForm(p => ({ ...p, itinerary: next }));
+                  }} />
+                </div>
+                <div className="md:col-span-6">
+                  <textarea className="input min-h-[40px]" placeholder="Description" value={item.description} onChange={(e) => {
+                    const next = [...form.itinerary];
+                    next[idx].description = e.target.value;
+                    setForm(p => ({ ...p, itinerary: next }));
+                  }} />
+                </div>
+                <div className="md:col-span-1 flex items-center justify-center">
+                  <button type="button" className="text-red-500 hover:text-red-700" onClick={() => {
+                    const next = form.itinerary.filter((_, i) => i !== idx);
+                    setForm(p => ({ ...p, itinerary: next }));
+                  }}>×</button>
+                </div>
+              </div>
+            ))}
+            <button type="button" className="btn-secondary text-xs" onClick={() => setForm(p => ({ ...p, itinerary: [...p.itinerary, { day: p.itinerary.length + 1, title: "", description: "" }] }))}>+ Add Day</button>
+          </div>
+        )}
+
+        {/* Visa Specific Fields */}
+        {categories.find(c => c._id === form.category)?.name?.toLowerCase() === "visas" && (
+          <div className="md:col-span-2 space-y-4 py-4 border-t border-surface-100">
+            <h3 className="text-sm font-bold text-surface-700 uppercase tracking-wider">Visa Processing Details</h3>
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-surface-500">Documents Required (Comma separated)</p>
+              <textarea className="input" value={form.documentsRequired} onChange={(e) => onChange("documentsRequired", e.target.value)} placeholder="Passport Copy, Photo, etc." />
+            </div>
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-surface-500 uppercase tracking-wider">Application Steps</p>
+              {form.applicationSteps.map((step, idx) => (
+                <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 bg-surface-50/50 rounded-xl border border-surface-200">
+                  <div className="md:col-span-1">
+                    <input type="number" className="input" value={step.step} onChange={(e) => {
+                      const next = [...form.applicationSteps];
+                      next[idx].step = e.target.value;
+                      setForm(p => ({ ...p, applicationSteps: next }));
+                    }} />
+                  </div>
+                  <div className="md:col-span-10">
+                    <input className="input mb-2" placeholder="Step Title" value={step.title} onChange={(e) => {
+                      const next = [...form.applicationSteps];
+                      next[idx].title = e.target.value;
+                      setForm(p => ({ ...p, applicationSteps: next }));
+                    }} />
+                    <textarea className="input" placeholder="Step Description" value={step.description} onChange={(e) => {
+                      const next = [...form.applicationSteps];
+                      next[idx].description = e.target.value;
+                      setForm(p => ({ ...p, applicationSteps: next }));
+                    }} />
+                  </div>
+                  <div className="md:col-span-1 flex items-center justify-center">
+                    <button type="button" className="text-red-500 hover:text-red-700" onClick={() => {
+                      const next = form.applicationSteps.filter((_, i) => i !== idx);
+                      setForm(p => ({ ...p, applicationSteps: next }));
+                    }}>×</button>
+                  </div>
+                </div>
+              ))}
+              <button type="button" className="btn-secondary text-xs" onClick={() => setForm(p => ({ ...p, applicationSteps: [...p.applicationSteps, { step: p.applicationSteps.length + 1, title: "", description: "" }] }))}>+ Add Step</button>
+            </div>
+          </div>
+        )}
+
+        {/* Common Rich Content */}
+        <div className="md:col-span-2 grid md:grid-cols-2 gap-4 py-4 border-t border-surface-100">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-surface-500">Inclusions (Comma separated)</p>
+            <textarea className="input h-24" value={form.inclusions} onChange={(e) => onChange("inclusions", e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-surface-500">Exclusions (Comma separated)</p>
+            <textarea className="input h-24" value={form.exclusions} onChange={(e) => onChange("exclusions", e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-surface-500">Guest Policy</p>
+            <textarea className="input h-24" value={form.guestPolicy} onChange={(e) => onChange("guestPolicy", e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-surface-500">Important Information</p>
+            <textarea className="input h-24" value={form.importantInformation} onChange={(e) => onChange("importantInformation", e.target.value)} />
+          </div>
+        </div>
+
+        <div className="md:col-span-2 space-y-3 py-4 border-t border-surface-100">
+          <h3 className="text-sm font-bold text-surface-700 uppercase tracking-wider">FAQs</h3>
+          {form.faq.map((item, idx) => (
+            <div key={idx} className="space-y-2 p-3 bg-surface-50 rounded-xl border border-surface-200 relative group">
+              <input className="input font-bold" placeholder="Question" value={item.question} onChange={(e) => {
+                const next = [...form.faq];
+                next[idx].question = e.target.value;
+                setForm(p => ({ ...p, faq: next }));
+              }} />
+              <textarea className="input" placeholder="Answer" value={item.answer} onChange={(e) => {
+                const next = [...form.faq];
+                next[idx].answer = e.target.value;
+                setForm(p => ({ ...p, faq: next }));
+              }} />
+              <button type="button" className="absolute top-2 right-2 text-red-500 hidden group-hover:block" onClick={() => {
+                const next = form.faq.filter((_, i) => i !== idx);
+                setForm(p => ({ ...p, faq: next }));
+              }}>Remove</button>
+            </div>
+          ))}
+          <button type="button" className="btn-secondary text-xs" onClick={() => setForm(p => ({ ...p, faq: [...p.faq, { question: "", answer: "" }] }))}>+ Add FAQ</button>
+        </div>
 
         <div className="md:col-span-2">
           <p className="mb-2 text-sm font-medium text-surface-700">Images</p>

@@ -56,6 +56,46 @@ const normalizePayload = (payload) => {
     normalized.isProductNew = Boolean(normalized.isProductNew);
   }
 
+  // Handle new complex fields
+  if (Array.isArray(normalized.itinerary)) {
+    normalized.itinerary = normalized.itinerary
+      .filter((item) => item && item.day)
+      .map((item) => ({
+        day: Number(item.day),
+        title: String(item.title || "").trim(),
+        description: String(item.description || "").trim(),
+      }));
+  }
+
+  if (Array.isArray(normalized.applicationSteps)) {
+    normalized.applicationSteps = normalized.applicationSteps
+      .filter((item) => item && item.step)
+      .map((item) => ({
+        step: Number(item.step),
+        title: String(item.title || "").trim(),
+        description: String(item.description || "").trim(),
+      }));
+  }
+
+  if (Array.isArray(normalized.faq)) {
+    normalized.faq = normalized.faq
+      .filter((item) => item && item.question)
+      .map((item) => ({
+        question: String(item.question || "").trim(),
+        answer: String(item.answer || "").trim(),
+      }));
+  }
+
+  if (Array.isArray(normalized.inclusions)) {
+    normalized.inclusions = normalized.inclusions.map(s => String(s).trim()).filter(Boolean);
+  }
+  if (Array.isArray(normalized.exclusions)) {
+    normalized.exclusions = normalized.exclusions.map(s => String(s).trim()).filter(Boolean);
+  }
+  if (Array.isArray(normalized.documentsRequired)) {
+    normalized.documentsRequired = normalized.documentsRequired.map(s => String(s).trim()).filter(Boolean);
+  }
+
   return normalized;
 };
 
@@ -133,6 +173,14 @@ exports.createProduct = async (req, res) => {
       itinerary,
       duration,
       manualCity,
+      inclusions,
+      exclusions,
+      applicationSteps,
+      documentsRequired,
+      guestPolicy,
+      importantInformation,
+      faq,
+      bookingType,
     } = req.body;
 
     if (
@@ -174,6 +222,14 @@ exports.createProduct = async (req, res) => {
       itinerary,
       duration,
       manualCity,
+      inclusions,
+      exclusions,
+      applicationSteps,
+      documentsRequired,
+      guestPolicy,
+      importantInformation,
+      faq,
+      bookingType,
     });
 
     const product = await Product.create(payload);
