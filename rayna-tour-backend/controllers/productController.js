@@ -20,6 +20,7 @@ const sanitizeTextBlocks = (blocks) => {
     .map((item) => ({
       title: String(item.title || "").trim(),
       description: String(item.description || "").trim(),
+      icon: String(item.icon || "").trim(),
     }));
 };
 

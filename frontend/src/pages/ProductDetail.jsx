@@ -6,7 +6,19 @@ import {
   Star, MapPin, Clock, ChevronLeft, ChevronRight, Check, X,
   FileText, Phone, Calendar, Shield, ChevronDown, ChevronUp,
   Loader2, AlertTriangle, Ship, Users, Info, BookOpen,
+  Zap, Smartphone, Globe, History, Map, ShieldCheck, Languages,
+  HelpCircle, Heart, RotateCcw,
 } from "lucide-react";
+
+const ICON_MAP = {
+  Clock, Zap, Smartphone, Globe, History, Map, ShieldCheck, Languages, Check, Star, Info, Shield, Ship, Users, Heart, RotateCcw, MapPin
+};
+
+const DynamicIcon = ({ name, size = 16, className = "" }) => {
+  const IconComponent = ICON_MAP[name] || HelpCircle;
+  return <IconComponent size={size} className={className} />;
+};
+
 
 // ─── Utility ────────────────────────────────────────────────────────────────
 const categoryLabel = (slug = "") => {
@@ -204,7 +216,7 @@ function Gallery({ images }) {
   return (
     <>
       {/* ── Mosaic grid ──────────────────────────────────────────────────── */}
-      <div className="flex gap-2 rounded-2xl overflow-hidden h-[340px] md:h-[420px] lg:h-[460px]">
+      <div className="relative flex gap-2 rounded-2xl overflow-hidden h-[340px] md:h-[420px] lg:h-[460px] group/gallery">
         {/* Hero image — left half */}
         <div
           className="relative flex-1 cursor-pointer group overflow-hidden"
@@ -287,20 +299,23 @@ function Gallery({ images }) {
             </div>
           </div>
         )}
+
+        {/* View Gallery button — sits at right bottom corner of the gallery */}
+        <div className="absolute bottom-4 right-4">
+          <button
+            onClick={() => openLightbox(0)}
+            className="flex items-center gap-2 text-xs md:text-sm text-gray-700 bg-white/95 hover:bg-white px-4 py-2.5 rounded-xl shadow-lg border border-white/20 backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+            </svg>
+            Show all photos ({safeImages.length})
+          </button>
+        </div>
       </div>
 
-      {/* View Gallery button — sits below the grid */}
-      <div className="flex justify-end mt-2">
-        <button
-          onClick={() => openLightbox(0)}
-          className="flex items-center gap-2 text-xs font-semibold text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 px-4 py-2 rounded-xl shadow-sm transition-all"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
-          </svg>
-          View Gallery ({safeImages.length} photos)
-        </button>
-      </div>
+
+
 
       {/* ── Lightbox Modal ────────────────────────────────────────────────── */}
       {lightboxOpen && (
@@ -500,7 +515,7 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      <div className="max-w-[97%] mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-[97%] mx-auto px-4 py-4 space-y-6">
 
         {/* ── FULL-WIDTH GALLERY ──────────────────────────────────────────── */}
         <Gallery images={product.images} />
@@ -513,30 +528,30 @@ const ProductDetail = () => {
 
             {/* Title block */}
             <div className="bg-white rounded-2xl p-4">
-              {/* Category + New badge */}
-              <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <span className="text-xs font-bold uppercase tracking-widest text-orange-500 bg-orange-50 px-3 py-1 rounded-full">
-                  {catName}
-                </span>
-                {product.isProductNew && (
-                  <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                    New
-                  </span>
+
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-700 leading-tight">
+                  {product.name}
+                </h1>
+
+                {/* Rating */}
+                {hasRating && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1">
+                      <Star size={16} className="fill-orange-300 text-orange-300" />
+                      <span className="text-base font-bold text-gray-800">{product.rating}</span>
+                    </div>
+                    <span className="text-sm text-gray-500 font-medium">
+                      ({product.reviews?.toLocaleString()} Reviews)
+                    </span>
+                  </div>
                 )}
               </div>
 
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-extrabold text-gray-900 leading-tight mb-3">
-                {product.name}
-              </h1>
-
               {/* Meta row */}
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500">
-                {product.location && (
-                  <span className="flex items-center gap-1.5">
-                    <MapPin size={14} className="text-orange-400" />
-                    {product.location}
-                  </span>
-                )}
+
                 {product.duration && (
                   <span className="flex items-center gap-1.5">
                     <Clock size={14} className="text-orange-400" />
@@ -557,251 +572,65 @@ const ProductDetail = () => {
                 )}
               </div>
 
-              {/* Rating */}
-              {hasRating && (
-                <div className="flex items-center gap-2 mt-4">
-                  <div className="flex items-center gap-1 bg-orange-50 px-2.5 py-1 rounded-lg">
-                    <Star size={14} className="fill-orange-400 text-orange-400" />
-                    <span className="text-sm font-bold text-gray-800">{product.rating}</span>
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {product.reviews?.toLocaleString()} Reviews
-                  </span>
-                </div>
-              )}
+              {/* Meta row remains here or we can merge it above, but keeping it for now as per current structure but refined */}
+
             </div>
 
-            {/* ── Tabs ─────────────────────────────────────────────────── */}
-            <div className="bg-white rounded-2xl overflow-hidden">
-              {/* Tab nav */}
-              <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-100">
-                {availableTabs.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`shrink-0 px-5 py-4 text-sm font-semibold transition-all border-b-2 whitespace-nowrap
-                      ${activeTab === tab
-                        ? "border-orange-500 text-orange-500"
-                        : "border-transparent text-gray-500 hover:text-gray-800"
-                      }`}
-                  >
-                    {tab}
-                  </button>
+            {/* ── Highlights Grid (Outside Tabs) ─────────────────────────────── */}
+            {product.highlights?.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {product.highlights.map((h, i) => {
+                  // Generate some subtle colors for the icon background
+                  const bgColors = [
+                    "bg-emerald-50 text-emerald-600",
+                    "bg-blue-50 text-blue-600",
+                    "bg-orange-50 text-orange-600",
+                    "bg-purple-50 text-purple-600",
+                    "bg-rose-50 text-rose-600",
+                    "bg-amber-50 text-amber-600",
+                  ];
+                  const colorClass = bgColors[i % bgColors.length];
+
+                  return (
+                    <div key={i} className="flex items-center gap-4 p-2 transition-all">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}>
+                        <DynamicIcon name={h.icon} size={22} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-bold text-gray-900">{h.title}</p>
+                        {h.description && (
+                          <p className="text-xs text-gray-500 mt-0.5 leading-relaxed truncate md:whitespace-normal">
+                            {h.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+
+
+
+            {/* ── Content Sections ─────────────────────────────── */}
+            {product.contentSections?.length > 0 && (
+              <div className="space-y-8 py-2">
+                {product.contentSections.map((sec, i) => (
+                  <div key={i} className="space-y-3">
+                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                      <span className="w-1.5 h-6 bg-orange-500 rounded-full" />
+                      {sec.title}
+                    </h2>
+                    <div 
+                      className="text-[15px] text-gray-600 leading-relaxed rich-text bg-gray-50/50 p-6 rounded-2xl border border-gray-100"
+                      dangerouslySetInnerHTML={{ __html: sec.description }}
+                    />
+                  </div>
                 ))}
               </div>
-
-              {/* Tab content */}
-              <div className="p-6 space-y-6">
-
-                {/* OVERVIEW TAB */}
-                {activeTab === TABS.OVERVIEW && (
-                  <div className="space-y-6">
-                    {/* Highlights */}
-                    {product.highlights?.length > 0 && (
-                      <div>
-                        <h2 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-                          <span className="w-1 h-5 bg-orange-500 rounded-full" />
-                          Tour Highlights
-                        </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {product.highlights.map((h, i) => (
-                            <div key={i} className="flex gap-3 p-4 bg-orange-50/50 rounded-xl border border-orange-100">
-                              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                                <Check size={14} className="text-orange-500" strokeWidth={2.5} />
-                              </div>
-                              <div>
-                                <p className="text-sm font-semibold text-gray-800">{h.title}</p>
-                                {h.description && (
-                                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">{h.description}</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Content sections */}
-                    {product.contentSections?.length > 0 && (
-                      <div className="space-y-5">
-                        {product.contentSections.map((sec, i) => (
-                          <div key={i}>
-                            <h3 className="text-sm font-bold text-gray-800 mb-2">{sec.title}</h3>
-                            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                              {sec.description}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* No content fallback */}
-                    {!product.highlights?.length && !product.contentSections?.length && (
-                      <p className="text-sm text-gray-400">No overview content available.</p>
-                    )}
-                  </div>
-                )}
-
-                {/* ITINERARY TAB */}
-                {activeTab === TABS.ITINERARY && (
-                  <div className="space-y-3">
-                    <h2 className="text-base font-bold text-gray-800 flex items-center gap-2 mb-5">
-                      <span className="w-1 h-5 bg-orange-500 rounded-full" />
-                      Day-wise Itinerary
-                    </h2>
-                    {product.itinerary?.length > 0 ? (
-                      product.itinerary
-                        .slice()
-                        .sort((a, b) => a.day - b.day)
-                        .map((item, i) => <ItineraryDay key={i} item={item} />)
-                    ) : (
-                      <p className="text-sm text-gray-400">Itinerary not available.</p>
-                    )}
-                  </div>
-                )}
-
-                {/* INCLUSIONS TAB */}
-                {activeTab === TABS.INCLUSIONS && (
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    {/* Inclusions */}
-                    {product.inclusions?.length > 0 && (
-                      <div>
-                        <h2 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                          <Check size={16} className="text-emerald-500" strokeWidth={2.5} /> Inclusions
-                        </h2>
-                        <ul className="space-y-2">
-                          {product.inclusions.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700">
-                              <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
-                                <Check size={11} className="text-emerald-600" strokeWidth={3} />
-                              </div>
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {/* Exclusions */}
-                    {product.exclusions?.length > 0 && (
-                      <div>
-                        <h2 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                          <X size={16} className="text-red-400" strokeWidth={2.5} /> Exclusions
-                        </h2>
-                        <ul className="space-y-2">
-                          {product.exclusions.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700">
-                              <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
-                                <X size={11} className="text-red-500" strokeWidth={3} />
-                              </div>
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* VISA REQUIREMENTS TAB */}
-                {activeTab === TABS.VISA && (
-                  <div className="space-y-8">
-                    {product.documentsRequired?.length > 0 && (
-                      <div>
-                        <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-                          <FileText size={16} className="text-orange-500" /> Documents Required
-                        </h2>
-                        <ul className="space-y-2">
-                          {product.documentsRequired.map((doc, i) => (
-                            <li key={i} className="flex items-center gap-3 text-sm text-gray-700 bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200">
-                              <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                                <span className="text-orange-600 text-[10px] font-bold">{i + 1}</span>
-                              </div>
-                              {doc}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {product.applicationSteps?.length > 0 && (
-                      <div>
-                        <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-                          <BookOpen size={16} className="text-orange-500" /> Application Steps
-                        </h2>
-                        <div className="space-y-4">
-                          {product.applicationSteps
-                            .slice()
-                            .sort((a, b) => a.step - b.step)
-                            .map((s, i) => (
-                              <div key={i} className="flex gap-4">
-                                <div className="flex flex-col items-center">
-                                  <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
-                                    {s.step}
-                                  </div>
-                                  {i < product.applicationSteps.length - 1 && (
-                                    <div className="w-px flex-1 bg-orange-200 mt-2" />
-                                  )}
-                                </div>
-                                <div className="pb-5">
-                                  <p className="text-sm font-semibold text-gray-800">{s.title}</p>
-                                  {s.description && (
-                                    <p className="text-sm text-gray-500 mt-1 leading-relaxed">{s.description}</p>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* FAQ TAB */}
-                {activeTab === TABS.FAQ && (
-                  <div className="space-y-3">
-                    <h2 className="text-base font-bold text-gray-800 mb-5 flex items-center gap-2">
-                      <span className="w-1 h-5 bg-orange-500 rounded-full" />
-                      Frequently Asked Questions
-                    </h2>
-                    {product.faq?.map((item, i) => (
-                      <FaqItem key={i} question={item.question} answer={item.answer} />
-                    ))}
-                  </div>
-                )}
-
-                {/* POLICY TAB */}
-                {activeTab === TABS.POLICY && (
-                  <div className="space-y-6">
-                    {product.guestPolicy && (
-                      <div>
-                        <h2 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                          <Users size={15} className="text-orange-500" /> Guest Policy
-                        </h2>
-                        <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-200 whitespace-pre-line">
-                          {product.guestPolicy}
-                        </p>
-                      </div>
-                    )}
-                    {product.importantInformation && (
-                      <div>
-                        <h2 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                          <Info size={15} className="text-orange-500" /> Important Information
-                        </h2>
-                        <p className="text-sm text-gray-600 leading-relaxed bg-amber-50 p-4 rounded-xl border border-amber-100 whitespace-pre-line">
-                          {product.importantInformation}
-                        </p>
-                      </div>
-                    )}
-                    {!product.guestPolicy && !product.importantInformation && (
-                      <p className="text-sm text-gray-400">No policy information available.</p>
-                    )}
-                  </div>
-                )}
-
-              </div>
-            </div>
+            )}
           </div>
-
           {/* ── RIGHT COLUMN: Sticky Sidebar ─────────────────────────── */}
           <div className="lg:col-span-1">
             <div
@@ -902,10 +731,12 @@ const ProductDetail = () => {
 
             </div>
           </div>
-
         </div>
+
+
       </div>
     </div>
+
   );
 };
 

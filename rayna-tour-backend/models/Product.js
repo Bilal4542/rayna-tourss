@@ -14,6 +14,10 @@ const textBlockSchema = new mongoose.Schema(
       trim: true,
       maxlength: 3000,
     },
+    icon: {
+      type: String,
+      trim: true,
+    },
   },
   { _id: false }
 );

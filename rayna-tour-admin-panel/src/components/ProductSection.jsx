@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiService } from "../api";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+
 
 const makeEmptyImageSlot = () => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -16,7 +19,7 @@ const initialProduct = {
   cityPoint: "",
   location: "",
   images: [makeEmptyImageSlot()],
-  highlights: [{ title: "", description: "" }, { title: "", description: "" }],
+  highlights: [{ title: "", description: "", icon: "" }, { title: "", description: "", icon: "" }],
   contentSections: [{ title: "", description: "" }, { title: "", description: "" }],
   actualPrice: "",
   discountPrice: "",
@@ -131,7 +134,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
     images,
     highlights: form.highlights
       .filter((h) => h.title || h.description)
-      .map((h) => ({ title: h.title, description: h.description })),
+      .map((h) => ({ title: h.title, description: h.description, icon: h.icon })),
     contentSections: form.contentSections
       .filter((c) => c.title || c.description)
       .map((c) => ({ title: c.title, description: c.description })),
@@ -234,7 +237,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       cityPoint: product.cityPoint?._id || "",
       location: product.location || "",
       images: imageSlots,
-      highlights: (product.highlights || []).map((item) => ({ title: item.title, description: item.description })),
+      highlights: (product.highlights || []).map((item) => ({ title: item.title, description: item.description, icon: item.icon })),
       contentSections: (product.contentSections || []).map((item) => ({ title: item.title, description: item.description })),
       actualPrice: product.pricing?.actualPrice ?? "",
       discountPrice: product.pricing?.discountPrice ?? "",
@@ -487,48 +490,6 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           </div>
         )}
 
-        {/* Common Rich Content */}
-        <div className="md:col-span-2 grid md:grid-cols-2 gap-4 py-4 border-t border-surface-100">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-surface-500">Inclusions (Comma separated)</p>
-            <textarea className="input h-24" value={form.inclusions} onChange={(e) => onChange("inclusions", e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-surface-500">Exclusions (Comma separated)</p>
-            <textarea className="input h-24" value={form.exclusions} onChange={(e) => onChange("exclusions", e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-surface-500">Guest Policy</p>
-            <textarea className="input h-24" value={form.guestPolicy} onChange={(e) => onChange("guestPolicy", e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-surface-500">Important Information</p>
-            <textarea className="input h-24" value={form.importantInformation} onChange={(e) => onChange("importantInformation", e.target.value)} />
-          </div>
-        </div>
-
-        <div className="md:col-span-2 space-y-3 py-4 border-t border-surface-100">
-          <h3 className="text-sm font-bold text-surface-700 uppercase tracking-wider">FAQs</h3>
-          {form.faq.map((item, idx) => (
-            <div key={idx} className="space-y-2 p-3 bg-surface-50 rounded-xl border border-surface-200 relative group">
-              <input className="input font-bold" placeholder="Question" value={item.question} onChange={(e) => {
-                const next = [...form.faq];
-                next[idx].question = e.target.value;
-                setForm(p => ({ ...p, faq: next }));
-              }} />
-              <textarea className="input" placeholder="Answer" value={item.answer} onChange={(e) => {
-                const next = [...form.faq];
-                next[idx].answer = e.target.value;
-                setForm(p => ({ ...p, faq: next }));
-              }} />
-              <button type="button" className="absolute top-2 right-2 text-red-500 hidden group-hover:block" onClick={() => {
-                const next = form.faq.filter((_, i) => i !== idx);
-                setForm(p => ({ ...p, faq: next }));
-              }}>Remove</button>
-            </div>
-          ))}
-          <button type="button" className="btn-secondary text-xs" onClick={() => setForm(p => ({ ...p, faq: [...p.faq, { question: "", answer: "" }] }))}>+ Add FAQ</button>
-        </div>
 
         <div className="md:col-span-2">
           <p className="mb-2 text-sm font-medium text-surface-700">Images</p>
@@ -571,9 +532,24 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           </div>
         </div>
         <div className="md:col-span-2">
-          <p className="mb-2 text-sm font-medium text-surface-700">Highlights</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-surface-700">Highlights</p>
+            <div className="text-[10px] text-surface-400 bg-surface-50 px-2 py-1 rounded-lg border border-surface-200">
+              <span className="font-bold text-surface-600 uppercase">Icons:</span> Clock, Zap, Smartphone, Globe, History, Map, ShieldCheck, Languages, Check, Star, Info, Shield, Ship, Users
+            </div>
+          </div>
           {form.highlights.map((h, idx) => (
-            <div key={idx} className="grid grid-cols-2 gap-2 mb-2">
+            <div key={idx} className="grid grid-cols-3 gap-2 mb-2">
+              <input
+                className="input"
+                placeholder="Icon (e.g. Clock)"
+                value={h.icon}
+                onChange={(e) => {
+                  const newHighlights = [...form.highlights];
+                  newHighlights[idx].icon = e.target.value;
+                  setForm((prev) => ({ ...prev, highlights: newHighlights }));
+                }}
+              />
               <input
                 className="input"
                 placeholder="Title"
@@ -599,18 +575,31 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           <button
             type="button"
             className="btn-secondary"
-            onClick={() => setForm((prev) => ({ ...prev, highlights: [...prev.highlights, { title: "", description: "" }] }))}
+            onClick={() => setForm((prev) => ({ ...prev, highlights: [...prev.highlights, { title: "", description: "", icon: "" }] }))}
           >
             Add Highlight
           </button>
         </div>
-        <div className="md:col-span-2">
-          <p className="mb-2 text-sm font-medium text-surface-700">Content Sections</p>
+        <div className="md:col-span-2 space-y-4">
+          <p className="mb-2 text-sm font-medium text-surface-700 uppercase tracking-widest border-b pb-1">Content Sections (Rich Text)</p>
           {form.contentSections.map((c, idx) => (
-            <div key={idx} className="grid grid-cols-2 gap-2 mb-2">
+            <div key={idx} className="space-y-3 p-4 bg-surface-50/30 rounded-2xl border border-surface-100 relative group">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold text-surface-400 uppercase">Section {idx + 1}</span>
+                <button
+                  type="button"
+                  className="text-red-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => {
+                    const next = form.contentSections.filter((_, i) => i !== idx);
+                    setForm(p => ({ ...p, contentSections: next }));
+                  }}
+                >
+                  Remove Section
+                </button>
+              </div>
               <input
-                className="input"
-                placeholder="Title"
+                className="input font-bold"
+                placeholder="Section Title (e.g. Terms & Conditions)"
                 value={c.title}
                 onChange={(e) => {
                   const newSections = [...form.contentSections];
@@ -618,16 +607,24 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
                   setForm((prev) => ({ ...prev, contentSections: newSections }));
                 }}
               />
-              <textarea
-                className="input"
-                placeholder="Description (rich text)"
-                value={c.description}
-                onChange={(e) => {
-                  const newSections = [...form.contentSections];
-                  newSections[idx].description = e.target.value;
-                  setForm((prev) => ({ ...prev, contentSections: newSections }));
-                }}
-              />
+              <div className="bg-white rounded-xl overflow-hidden border border-surface-200">
+                <ReactQuill
+                  theme="snow"
+                  value={c.description}
+                  onChange={(content) => {
+                    const newSections = [...form.contentSections];
+                    newSections[idx].description = content;
+                    setForm((prev) => ({ ...prev, contentSections: newSections }));
+                  }}
+                  modules={{
+                    toolbar: [
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                      ['link', 'clean']
+                    ],
+                  }}
+                />
+              </div>
             </div>
           ))}
           <button
