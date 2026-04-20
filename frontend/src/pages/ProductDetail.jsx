@@ -486,7 +486,7 @@ const ProductDetail = () => {
   if (product.guestPolicy || product.importantInformation) availableTabs.push(TABS.POLICY);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       {/* ── Breadcrumb ─────────────────────────────────────────────────────── */}
       <div className="bg-white">
         <div className="max-w-[97%] mx-auto px-4 py-3 flex items-center gap-2 text-xs text-gray-500">
@@ -512,7 +512,7 @@ const ProductDetail = () => {
           <div className="lg:col-span-2 space-y-6">
 
             {/* Title block */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <div className="bg-white rounded-2xl p-4">
               {/* Category + New badge */}
               <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-widest text-orange-500 bg-orange-50 px-3 py-1 rounded-full">
@@ -572,7 +572,7 @@ const ProductDetail = () => {
             </div>
 
             {/* ── Tabs ─────────────────────────────────────────────────── */}
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-2xl overflow-hidden">
               {/* Tab nav */}
               <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-100">
                 {availableTabs.map((tab) => (
