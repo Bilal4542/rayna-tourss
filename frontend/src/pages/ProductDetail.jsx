@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { homeApi } from "../services/homeApi";
+
 import { toCategoryRoute } from "../utils/mapping";
 import {
   Star, MapPin, Clock, ChevronLeft, ChevronRight, Check, X,
@@ -427,7 +429,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState(TABS.OVERVIEW);
+  const [openSections, setOpenSections] = useState([0]); // First section open by default
 
   const sidebarRef = useRef(null);
 
@@ -613,21 +615,54 @@ const ProductDetail = () => {
 
 
 
-            {/* ── Content Sections ─────────────────────────────── */}
+            {/* ── Content Sections (Accordion) ─────────────────────────── */}
             {product.contentSections?.length > 0 && (
-              <div className="space-y-8 py-2">
-                {product.contentSections.map((sec, i) => (
-                  <div key={i} className="space-y-3">
-                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                      <span className="w-1.5 h-6 bg-orange-500 rounded-full" />
-                      {sec.title}
-                    </h2>
-                    <div 
-                      className="text-[15px] text-gray-600 leading-relaxed rich-text bg-gray-50/50 p-6 rounded-2xl border border-gray-100"
-                      dangerouslySetInnerHTML={{ __html: sec.description }}
-                    />
-                  </div>
-                ))}
+              <div className="space-y-4 py-2">
+                {product.contentSections.map((sec, i) => {
+                  const isOpen = openSections.includes(i);
+                  const toggleSection = () => {
+                    setOpenSections(prev => 
+                      prev.includes(i) 
+                        ? prev.filter(idx => idx !== i) 
+                        : [...prev, i]
+                    );
+                  };
+
+                  return (
+                    <div key={i} className="bg-gray-50/50 rounded-2xl overflow-hidden transition-all duration-300">
+                      {/* Header/Toggle Button */}
+                      <button 
+                        onClick={toggleSection}
+                        className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-100/50 transition-colors group"
+                      >
+                        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                          <span className={`w-1.5 h-6 bg-orange-500 rounded-full transition-all duration-300 ${isOpen ? "scale-y-100" : "scale-y-75 opacity-50"}`} />
+                          {sec.title}
+                        </h2>
+                        <div className={`p-2 rounded-full bg-white shadow-sm border border-gray-100 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}>
+                          <ChevronDown size={18} className="text-gray-500" />
+                        </div>
+                      </button>
+
+                      {/* Expandable Content */}
+                      <AnimatePresence>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                          >
+                            <div 
+                              className="px-6 pb-6 text-[15px] text-gray-600 leading-relaxed rich-text"
+                              dangerouslySetInnerHTML={{ __html: sec.description }}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

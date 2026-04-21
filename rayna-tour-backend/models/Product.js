@@ -12,7 +12,7 @@ const textBlockSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 3000,
+      maxlength: 100000,
     },
     icon: {
       type: String,
