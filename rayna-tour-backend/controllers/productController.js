@@ -97,6 +97,10 @@ const normalizePayload = (payload) => {
     normalized.documentsRequired = normalized.documentsRequired.map(s => String(s).trim()).filter(Boolean);
   }
 
+  if (normalized.mapAddress !== undefined) {
+    normalized.mapAddress = String(normalized.mapAddress).trim();
+  }
+
   return normalized;
 };
 
@@ -182,6 +186,7 @@ exports.createProduct = async (req, res) => {
       importantInformation,
       faq,
       bookingType,
+      mapAddress,
     } = req.body;
 
     if (
@@ -231,6 +236,7 @@ exports.createProduct = async (req, res) => {
       importantInformation,
       faq,
       bookingType,
+      mapAddress,
     });
 
     const product = await Product.create(payload);

@@ -195,6 +195,10 @@ const productSchema = new mongoose.Schema(
       enum: ["direct", "inquiry"],
       default: "inquiry",
     },
+    mapAddress: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,

@@ -29,7 +29,6 @@ const initialProduct = {
   isProductNew: false,
   cruiseLine: "",
   departureCity: "",
-  itinerary: "",
   duration: "",
   manualCity: "",
   inclusions: "",
@@ -41,6 +40,7 @@ const initialProduct = {
   faq: [{ question: "", answer: "" }],
   bookingType: "inquiry",
   itinerary: [{ day: 1, title: "", description: "" }],
+  mapAddress: "",
 };
 
 const toSlug = (value = "") =>
@@ -159,6 +159,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
     faq: form.faq.filter(f => f.question || f.answer),
     bookingType: form.bookingType || "inquiry",
     itinerary: form.itinerary.filter(i => i.title || i.description),
+    mapAddress: form.mapAddress?.trim() || undefined,
   });
 
   const onSubmit = async (e) => {
@@ -247,7 +248,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       isProductNew: !!product.isProductNew,
       cruiseLine: product.cruiseLine || "",
       departureCity: product.departureCity || "",
-      itinerary: (product.itinerary || []).join(", "),
+      departureCity: product.departureCity || "",
       duration: product.duration || "",
       manualCity: product.manualCity || "",
       inclusions: (product.inclusions || []).join(", "),
@@ -259,6 +260,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       faq: product.faq?.length ? product.faq.map(f => ({ question: f.question, answer: f.answer })) : [{ question: "", answer: "" }],
       bookingType: product.bookingType || "inquiry",
       itinerary: product.itinerary?.length ? product.itinerary.map(i => ({ day: i.day, title: i.title, description: i.description })) : [{ day: 1, title: "", description: "" }],
+      mapAddress: product.mapAddress || "",
     });
   };
 
@@ -334,6 +336,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={onSubmit}>
         <input className="input" placeholder="Product name" value={form.name} onChange={(e) => onChange("name", e.target.value)} required />
         <input className="input" placeholder="Slug (optional)" value={form.slug} onChange={(e) => onChange("slug", e.target.value)} />
+        
         <select className="input" value={form.category} onChange={(e) => onChange("category", e.target.value)} required>
           <option value="">Select category</option>
           {categories.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}
@@ -373,7 +376,6 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
             />
           )}
         </div>
-        <input className="input" placeholder="Location" value={form.location} onChange={(e) => onChange("location", e.target.value)} required />
         <input className="input" type="number" placeholder="Actual price" value={form.actualPrice} onChange={(e) => onChange("actualPrice", e.target.value)} required />
         <input className="input" type="number" placeholder="Discount price" value={form.discountPrice} onChange={(e) => onChange("discountPrice", e.target.value)} />
         <input className="input" type="number" step="0.1" max="5" placeholder="Rating (0-5)" value={form.rating} onChange={(e) => onChange("rating", e.target.value)} />
@@ -634,6 +636,22 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           >
             Add Section
           </button>
+        </div>
+
+        {/* Map Location Section (Prominent) */}
+        <div className="md:col-span-2 p-4 bg-indigo-50/30 rounded-2xl border-2 border-dashed border-indigo-200 space-y-3">
+          <h3 className="text-xs font-bold text-indigo-600 uppercase tracking-widest text-center">Map & Location Integration</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-surface-500 uppercase">1. Location Label (Shows on card)</label>
+              <input className="input bg-white" placeholder="e.g. Downtown, Dubai" value={form.location} onChange={(e) => onChange("location", e.target.value)} required />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-indigo-500 uppercase">2. Map Address (Points at Map)</label>
+              <input className="input bg-white border-indigo-300 focus:border-indigo-600" placeholder="e.g. Burj Khalifa, Dubai" value={form.mapAddress} onChange={(e) => onChange("mapAddress", e.target.value)} />
+            </div>
+          </div>
+          <p className="text-[10px] text-indigo-400 italic text-center">This address connects the product to the interactive map on the detail page.</p>
         </div>
         <div className="flex gap-2 md:col-span-2">
           <button className="btn-primary" type="submit" disabled={!canSubmit || imageBusy}>{editingId ? "Update Product" : "Create Product"}</button>

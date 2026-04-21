@@ -621,9 +621,9 @@ const ProductDetail = () => {
                 {product.contentSections.map((sec, i) => {
                   const isOpen = openSections.includes(i);
                   const toggleSection = () => {
-                    setOpenSections(prev => 
-                      prev.includes(i) 
-                        ? prev.filter(idx => idx !== i) 
+                    setOpenSections(prev =>
+                      prev.includes(i)
+                        ? prev.filter(idx => idx !== i)
                         : [...prev, i]
                     );
                   };
@@ -631,7 +631,7 @@ const ProductDetail = () => {
                   return (
                     <div key={i} className="bg-gray-50/50 rounded-2xl overflow-hidden transition-all duration-300">
                       {/* Header/Toggle Button */}
-                      <button 
+                      <button
                         onClick={toggleSection}
                         className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-100/50 transition-colors group"
                       >
@@ -653,7 +653,7 @@ const ProductDetail = () => {
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                           >
-                            <div 
+                            <div
                               className="px-6 pb-6 text-[15px] text-gray-600 leading-relaxed rich-text"
                               dangerouslySetInnerHTML={{ __html: sec.description }}
                             />
@@ -663,6 +663,44 @@ const ProductDetail = () => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* ── Location Section ────────────────────────────────────────── */}
+            {product.mapAddress && (
+              <div className="mt-8 space-y-4">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 px-5">
+                  <span className="w-1.5 h-6 bg-orange-500 rounded-full" />
+                  Location
+                </h2>
+
+                <div className="bg-white rounded-2xl p-6 space-y-5">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center shrink-0">
+                      <MapPin size={20} className="text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-gray-800 leading-tight mb-1">
+                        {product.mapAddress}
+                      </p>
+                      <p className="text-sm text-gray-500 font-medium">
+                        {product.location}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-[350px] rounded-2xl overflow-hidden">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      scrolling="no"
+                      marginHeight="0"
+                      marginWidth="0"
+                      src={`https://maps.google.com/maps?q=${encodeURIComponent(product.mapAddress)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                    ></iframe>
+                  </div>
+                </div>
               </div>
             )}
           </div>
