@@ -9,8 +9,12 @@ import {
   FileText, Phone, Calendar, Shield, ChevronDown, ChevronUp,
   Loader2, AlertTriangle, Ship, Users, Info, BookOpen,
   Zap, Smartphone, Globe, History, Map, ShieldCheck, Languages,
-  HelpCircle, Heart, RotateCcw,
+  HelpCircle, Heart, RotateCcw, ThumbsUp, MessageSquare, ListFilter, Image as ImageIcon, Send
 } from "lucide-react";
+import { reviewApi } from "../services/reviewApi";
+import ReviewSummary from "../components/Review/ReviewSummary";
+import ReviewItem from "../components/Review/ReviewItem";
+import ReviewForm from "../components/Review/ReviewForm";
 
 const ICON_MAP = {
   Clock, Zap, Smartphone, Globe, History, Map, ShieldCheck, Languages, Check, Star, Info, Shield, Ship, Users, Heart, RotateCcw, MapPin
@@ -430,6 +434,12 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [openSections, setOpenSections] = useState([0]); // First section open by default
+  const [reviews, setReviews] = useState([]);
+  const [sortedReviews, setSortedReviews] = useState([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [showSort, setShowSort] = useState(false);
+  const [sortBy, setSortBy] = useState("Top Reviews");
 
   const sidebarRef = useRef(null);
 
@@ -443,10 +453,62 @@ const ProductDetail = () => {
       .then((data) => {
         if (!data) throw new Error("Product not found.");
         setProduct(data);
+        fetchReviews(data._id);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  const fetchReviews = async (productId) => {
+    setReviewLoading(true);
+    try {
+      const { data } = await reviewApi.getProductReviews(productId);
+      setReviews(data);
+      setSortedReviews(data);
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  const handleReviewSubmit = async (reviewData) => {
+    console.log("Submitting review for product ID:", product?._id);
+    console.log("Review Data:", reviewData);
+    setIsSubmittingReview(true);
+    try {
+      if (!product?._id) throw new Error("Product ID is missing.");
+      await reviewApi.submitReview(product._id, reviewData);
+      fetchReviews(product._id);
+      // Update product local state for immediate feedback
+      setProduct(prev => ({
+        ...prev,
+        reviews: (prev.reviews || 0) + 1,
+        rating: ((prev.rating * prev.reviews) + reviewData.rating) / (prev.reviews + 1)
+      }));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  useEffect(() => {
+    let sorted = [...reviews];
+    if (sortBy === "Most Recent") {
+      sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else if (sortBy === "Highest Rating") {
+      sorted.sort((a, b) => b.rating - a.rating);
+    } else if (sortBy === "Lowest Rating") {
+      sorted.sort((a, b) => a.rating - b.rating);
+    } else if (sortBy === "Oldest") {
+      sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    } else {
+      // Default / Top Reviews (highest rating first)
+      sorted.sort((a, b) => b.rating - a.rating);
+    }
+    setSortedReviews(sorted);
+  }, [sortBy, reviews]);
 
   if (loading) {
     return (
@@ -541,8 +603,8 @@ const ProductDetail = () => {
                 {hasRating && (
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="flex items-center gap-1">
-                      <Star size={16} className="fill-orange-300 text-orange-300" />
-                      <span className="text-base font-bold text-gray-800">{product.rating}</span>
+                      <Star size={16} className="fill-amber-500 text-amber-500" />
+                      <span className="text-base font-bold text-gray-800">{Number(product.rating || 0).toFixed(1)}</span>
                     </div>
                     <span className="text-sm text-gray-500 font-medium">
                       ({product.reviews?.toLocaleString()} Reviews)
@@ -703,6 +765,125 @@ const ProductDetail = () => {
                 </div>
               </div>
             )}
+
+            {/* ── Reviews Section ────────────────────────────────────────── */}
+            <div className="mt-12 space-y-10 pb-12">
+              <div className="flex items-center justify-between px-5">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <span className="w-1.5 h-6 bg-blue-600 rounded-full" />
+                  What our customers say
+                </h2>
+                <div className="flex items-center gap-2 text-sm font-bold text-gray-400">
+                  <MessageSquare size={16} />
+                  {reviews.length} Reviews
+                </div>
+              </div>
+
+              {/* Visual Filters (Moved here after title) */}
+              <div className="flex flex-wrap items-center justify-between gap-4 py-4 px-5 border-b border-gray-100">
+                <div className="flex flex-wrap gap-2">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:border-gray-300 transition-all shadow-sm">
+                    <ImageIcon size={14} /> With Images
+                  </button>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:border-gray-300 transition-all shadow-sm">
+                    <Star size={14} /> 4+ Stars
+                  </button>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:border-gray-300 transition-all shadow-sm">
+                    <Star size={14} /> 3 Stars
+                  </button>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:border-gray-300 transition-all shadow-sm">
+                    <Star size={14} /> &lt; 3 Stars
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSort(!showSort)}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-100 rounded-xl text-[13px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+                  >
+                    {sortBy} {showSort ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+
+                  <AnimatePresence>
+                    {showSort && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setShowSort(false)}
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          className="absolute right-0 mt-2 w-48 bg-white rounded-[24px] shadow-2xl shadow-gray-200/50 border border-gray-50 z-50 p-3 space-y-1"
+                        >
+                          {["Top Reviews", "Most Recent", "Highest Rating", "Lowest Rating", "Oldest"].map((option) => (
+                            <button
+                              key={option}
+                              onClick={() => {
+                                setSortBy(option);
+                                setShowSort(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 rounded-xl text-[12px] font-bold transition-all border ${sortBy === option
+                                ? "bg-[#2D2D2D] text-white border-transparent shadow-lg shadow-gray-200"
+                                : "bg-white text-gray-600 border-gray-100 hover:border-gray-300"
+                                }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              <div className="space-y-10 px-5">
+                {/* 1. Review Summary (Full Width Row) */}
+                <div className="w-full">
+                  <ReviewSummary
+                    rating={product.rating}
+                    totalReviews={product.reviews}
+                    reviews={reviews}
+                  />
+                </div>
+
+                {/* 2. Review Form (Full Width Row) */}
+                <div className="w-full">
+                  <ReviewForm
+                    onSubmit={handleReviewSubmit}
+                    loading={isSubmittingReview}
+                    currentUser={null}
+                  />
+                </div>
+
+                {/* 3. Review List (Full Width Row) */}
+                <div className="w-full space-y-6">
+                  {/* Review List */}
+                  <div className="space-y-2">
+                    <h4 className="font-bold text-gray-900 text-lg">Recent Feedback</h4>
+
+                    {reviewLoading ? (
+                      <div className="py-20 flex justify-center">
+                        <Loader2 className="animate-spin text-blue-500" size={32} />
+                      </div>
+                    ) : sortedReviews.length > 0 ? (
+                      <div className="divide-y divide-gray-50">
+                        {sortedReviews.map(review => (
+                          <ReviewItem key={review._id} review={review} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-16 text-center bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200">
+                        <MessageSquare className="mx-auto text-gray-300 mb-2" size={32} />
+                        <p className="text-sm font-bold text-gray-400">No reviews yet. Be the first to share your experience!</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           {/* ── RIGHT COLUMN: Sticky Sidebar ─────────────────────────── */}
           <div className="lg:col-span-1">
