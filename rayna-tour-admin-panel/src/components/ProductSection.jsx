@@ -336,7 +336,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={onSubmit}>
         <input className="input" placeholder="Product name" value={form.name} onChange={(e) => onChange("name", e.target.value)} required />
         <input className="input" placeholder="Slug (optional)" value={form.slug} onChange={(e) => onChange("slug", e.target.value)} />
-        
+
         <select className="input" value={form.category} onChange={(e) => onChange("category", e.target.value)} required>
           <option value="">Select category</option>
           {categories.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}
@@ -349,12 +349,12 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           <option value="">Select city point</option>
           {cityPoints.filter(cp => cp.city?._id === form.city || cp.city === form.city).map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}
         </select>
-        
+
         <div className="flex flex-col gap-2">
           <label className="flex items-center gap-2 cursor-pointer p-2 border border-surface-200 rounded-xl bg-surface-50/50">
-            <input 
-              type="checkbox" 
-              checked={!!form.manualCity || form.isManualMode} 
+            <input
+              type="checkbox"
+              checked={!!form.manualCity || form.isManualMode}
               onChange={(e) => {
                 if (!e.target.checked) {
                   setForm(prev => ({ ...prev, manualCity: "", isManualMode: false }));
@@ -367,12 +367,12 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
             <span className="text-sm font-medium text-surface-700">New City (Manual)</span>
           </label>
           {(form.manualCity || form.isManualMode) && (
-            <input 
-              className="input border-orange-200 focus:border-orange-500" 
-              placeholder="Enter City Name Manually" 
-              value={form.manualCity} 
-              onChange={(e) => onChange("manualCity", e.target.value)} 
-              required 
+            <input
+              className="input border-orange-200 focus:border-orange-500"
+              placeholder="Enter City Name Manually"
+              value={form.manualCity}
+              onChange={(e) => onChange("manualCity", e.target.value)}
+              required
             />
           )}
         </div>
@@ -380,11 +380,11 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
         <input className="input" type="number" placeholder="Discount price" value={form.discountPrice} onChange={(e) => onChange("discountPrice", e.target.value)} />
         <input className="input" type="number" step="0.1" max="5" placeholder="Rating (0-5)" value={form.rating} onChange={(e) => onChange("rating", e.target.value)} />
         <input className="input" type="number" placeholder="Review count" value={form.reviews} onChange={(e) => onChange("reviews", e.target.value)} />
-        
+
         <label className="flex items-center gap-2 cursor-pointer p-2 border border-surface-200 rounded-xl bg-surface-50/50">
-          <input 
-            type="checkbox" 
-            checked={form.isProductNew} 
+          <input
+            type="checkbox"
+            checked={form.isProductNew}
             onChange={(e) => onChange("isProductNew", e.target.checked)}
             className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
           />

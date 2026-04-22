@@ -9,9 +9,10 @@ const ReviewSummary = ({ rating, totalReviews, reviews }) => {
     { label: 'Poor', stars: 2 },
     { label: 'Terrible', stars: 1 },
   ];
+  const reviewsArray = Array.isArray(reviews) ? reviews : [];
 
   const breakdown = stats.map(stat => {
-    const count = reviews.filter(r => Math.round(r.rating) === stat.stars).length;
+    const count = reviewsArray.filter(r => Math.round(r.rating) === stat.stars).length;
     const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
     return { ...stat, count, percentage };
   });

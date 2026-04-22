@@ -24,10 +24,9 @@ const ReviewForm = ({ onSubmit, loading, currentUser }) => {
       userImage: currentUser ? currentUser.image : ''
     });
 
-    if (!currentUser) {
-      setComment('');
-      setRating(0);
-    }
+    setComment('');
+    setRating(0);
+    setName('');
   };
 
   return (

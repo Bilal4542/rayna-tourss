@@ -26,7 +26,7 @@ const ReviewItem = ({ review }) => {
   const initial = userName.charAt(0).toUpperCase();
 
   return (
-    <div className="py-6 space-y-4 border-b border-gray-100 last:border-0 hover:bg-gray-50/20 transition-colors px-4 rounded-2xl -mx-4 group">
+    <div className="py-3 space-y-3 border-b border-gray-100 last:border-0 hover:bg-gray-50/20 transition-colors px-4 rounded-2xl -mx-4 group">
       {/* 1. Header (Avatar + Info) */}
       <div className="flex items-center gap-3">
         <div className="relative">

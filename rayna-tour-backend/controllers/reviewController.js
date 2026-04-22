@@ -28,8 +28,6 @@ const updateProductRating = async (productId) => {
 };
 
 exports.createReview = async (req, res) => {
-  console.log("createReview hit for productId:", req.params.productId);
-  console.log("Body:", req.body);
   try {
     const { productId } = req.params;
     const { userName, userEmail, rating, comment, isGuest, userImage } = req.body;

@@ -440,6 +440,8 @@ const ProductDetail = () => {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [showSort, setShowSort] = useState(false);
   const [sortBy, setSortBy] = useState("Top Reviews");
+  const [filterBy, setFilterBy] = useState(null); // null, '4+', '3', '<3', 'images'
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   const sidebarRef = useRef(null);
 
@@ -462,9 +464,10 @@ const ProductDetail = () => {
   const fetchReviews = async (productId) => {
     setReviewLoading(true);
     try {
-      const { data } = await reviewApi.getProductReviews(productId);
-      setReviews(data);
-      setSortedReviews(data);
+      const response = await reviewApi.getProductReviews(productId);
+      const reviewsData = response.data || [];
+      setReviews(reviewsData);
+      setSortedReviews(reviewsData);
     } catch (err) {
       console.error("Error fetching reviews:", err);
     } finally {
@@ -495,6 +498,17 @@ const ProductDetail = () => {
 
   useEffect(() => {
     let sorted = [...reviews];
+
+    // Apply Filter first
+    if (filterBy === "4+") {
+      sorted = sorted.filter(r => r.rating >= 4);
+    } else if (filterBy === "3") {
+      sorted = sorted.filter(r => r.rating === 3);
+    } else if (filterBy === "<3") {
+      sorted = sorted.filter(r => r.rating < 3);
+    } // 'images' filter ignored as per user request
+
+    // Then Sort
     if (sortBy === "Most Recent") {
       sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } else if (sortBy === "Highest Rating") {
@@ -508,7 +522,7 @@ const ProductDetail = () => {
       sorted.sort((a, b) => b.rating - a.rating);
     }
     setSortedReviews(sorted);
-  }, [sortBy, reviews]);
+  }, [sortBy, filterBy, reviews]);
 
   if (loading) {
     return (
@@ -779,68 +793,8 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              {/* Visual Filters (Moved here after title) */}
-              <div className="flex flex-wrap items-center justify-between gap-4 py-4 px-5 border-b border-gray-100">
-                <div className="flex flex-wrap gap-2">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:border-gray-300 transition-all shadow-sm">
-                    <ImageIcon size={14} /> With Images
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:border-gray-300 transition-all shadow-sm">
-                    <Star size={14} /> 4+ Stars
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:border-gray-300 transition-all shadow-sm">
-                    <Star size={14} /> 3 Stars
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:border-gray-300 transition-all shadow-sm">
-                    <Star size={14} /> &lt; 3 Stars
-                  </button>
-                </div>
-
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSort(!showSort)}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-100 rounded-xl text-[13px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
-                  >
-                    {sortBy} {showSort ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                  </button>
-
-                  <AnimatePresence>
-                    {showSort && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-40"
-                          onClick={() => setShowSort(false)}
-                        />
-                        <motion.div
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute right-0 mt-2 w-48 bg-white rounded-[24px] shadow-2xl shadow-gray-200/50 border border-gray-50 z-50 p-3 space-y-1"
-                        >
-                          {["Top Reviews", "Most Recent", "Highest Rating", "Lowest Rating", "Oldest"].map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => {
-                                setSortBy(option);
-                                setShowSort(false);
-                              }}
-                              className={`w-full text-left px-4 py-2 rounded-xl text-[12px] font-bold transition-all border ${sortBy === option
-                                ? "bg-[#2D2D2D] text-white border-transparent shadow-lg shadow-gray-200"
-                                : "bg-white text-gray-600 border-gray-100 hover:border-gray-300"
-                                }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </motion.div>
-                      </>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
 
               <div className="space-y-10 px-5">
-                {/* 1. Review Summary (Full Width Row) */}
                 <div className="w-full">
                   <ReviewSummary
                     rating={product.rating}
@@ -849,17 +803,118 @@ const ProductDetail = () => {
                   />
                 </div>
 
-                {/* 2. Review Form (Full Width Row) */}
-                <div className="w-full">
-                  <ReviewForm
-                    onSubmit={handleReviewSubmit}
-                    loading={isSubmittingReview}
-                    currentUser={null}
-                  />
+                {/* Visual Filters & Sort */}
+                <div className="space-y-4 px-5">
+                  <h4 className="text-lg font-bold text-gray-900 capitalize">Customer reviews</h4>
+                  <div className="flex flex-wrap items-center justify-between gap-4 py-2 border-y border-gray-50 -mx-5 px-5">
+                    <div className="flex flex-wrap gap-2">
+                      <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:border-gray-300 transition-all shadow-sm">
+                        <ImageIcon size={14} /> With Images
+                      </button>
+                      <button
+                        onClick={() => setFilterBy(filterBy === "4+" ? null : "4+")}
+                        className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-xs font-bold transition-all shadow-sm ${filterBy === "4+" ? "bg-[#2D2D2D] text-white border-transparent" : "bg-white text-gray-600 border-gray-100 hover:border-gray-300"
+                          }`}
+                      >
+                        <Star size={14} /> 4+ Stars
+                      </button>
+                      <button
+                        onClick={() => setFilterBy(filterBy === "3" ? null : "3")}
+                        className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-xs font-bold transition-all shadow-sm ${filterBy === "3" ? "bg-[#2D2D2D] text-white border-transparent" : "bg-white text-gray-600 border-gray-100 hover:border-gray-300"
+                          }`}
+                      >
+                        <Star size={14} /> 3 Stars
+                      </button>
+                      <button
+                        onClick={() => setFilterBy(filterBy === "<3" ? null : "<3")}
+                        className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-xs font-bold transition-all shadow-sm ${filterBy === "<3" ? "bg-[#2D2D2D] text-white border-transparent" : "bg-white text-gray-600 border-gray-100 hover:border-gray-300"
+                          }`}
+                      >
+                        <Star size={14} /> &lt; 3 Stars
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowSort(!showSort)}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-100 rounded-xl text-[13px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        {sortBy} {showSort ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+
+                      <AnimatePresence>
+                        {showSort && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-40"
+                              onClick={() => setShowSort(false)}
+                            ></div>
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                              className="absolute right-0 mt-2 w-48 bg-white rounded-[24px] shadow-2xl shadow-gray-200/50 border border-gray-50 z-50 p-3 space-y-1"
+                            >
+                              {["Top Reviews", "Most Recent", "Highest Rating", "Lowest Rating", "Oldest"].map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => {
+                                    setSortBy(option);
+                                    setShowSort(false);
+                                  }}
+                                  className={`w-full text-left px-4 py-2 rounded-xl text-[12px] font-bold transition-all border ${sortBy === option
+                                    ? "bg-[#2D2D2D] text-white border-transparent shadow-lg shadow-gray-200"
+                                    : "bg-white text-gray-600 border-gray-100 hover:border-gray-300"
+                                    }`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </motion.div>
+                          </>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Review Form (Collapsible Row) */}
+                <div className="w-full space-y-4">
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => setShowReviewForm(!showReviewForm)}
+                      className="flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-black text-white text-[13px] font-extrabold rounded-xl shadow-lg shadow-gray-200 transition-all hover:scale-105 active:scale-95"
+                    >
+                      <MessageSquare size={16} />
+                      {showReviewForm ? "Cancel Review" : "Write a Review"}
+                      <ChevronDown size={16} className={`transition-transform duration-300 ${showReviewForm ? "rotate-180" : ""}`} />
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {showReviewForm && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <ReviewForm
+                          onSubmit={(data) => {
+                            handleReviewSubmit(data);
+                            setShowReviewForm(false);
+                          }}
+                          loading={isSubmittingReview}
+                          currentUser={null}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* 3. Review List (Full Width Row) */}
-                <div className="w-full space-y-6">
+                <div className="w-full space-y-4">
                   {/* Review List */}
                   <div className="space-y-2">
                     <h4 className="font-bold text-gray-900 text-lg">Recent Feedback</h4>
@@ -885,6 +940,7 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
+
           {/* ── RIGHT COLUMN: Sticky Sidebar ─────────────────────────── */}
           <div className="lg:col-span-1">
             <div
@@ -986,11 +1042,8 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
-
-
       </div>
     </div>
-
   );
 };
 
