@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiService } from "../api";
-import ReactQuill from "react-quill-new";
-import "react-quill-new/dist/quill.snow.css";
-
+import RichTextEditor from "./RichTextEditor";
 
 const makeEmptyImageSlot = () => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -409,9 +407,8 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           </div>
         )}
 
-        {/* Holiday / Cruise Itinerary */}
-        {(["holidays", "cruises"].includes(categories.find(c => c._id === form.category)?.name?.toLowerCase())) && (
-          <div className="md:col-span-2 space-y-3 py-4 border-t border-surface-100">
+        {/* Day-wise Itinerary */}
+        <div className="md:col-span-2 space-y-3 py-4 border-t border-surface-100">
             <h3 className="text-sm font-bold text-surface-700 uppercase tracking-wider">Day-wise Itinerary</h3>
             {form.itinerary.map((item, idx) => (
               <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 bg-surface-50/50 rounded-xl border border-surface-200">
@@ -430,11 +427,17 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
                   }} />
                 </div>
                 <div className="md:col-span-6">
-                  <textarea className="input min-h-[40px]" placeholder="Description" value={item.description} onChange={(e) => {
-                    const next = [...form.itinerary];
-                    next[idx].description = e.target.value;
-                    setForm(p => ({ ...p, itinerary: next }));
-                  }} />
+                  <div className="bg-white rounded-xl overflow-hidden border border-surface-200">
+                    <RichTextEditor
+                      placeholder="Description"
+                      value={item.description}
+                      onChange={(content) => {
+                        const next = [...form.itinerary];
+                        next[idx].description = content;
+                        setForm(p => ({ ...p, itinerary: next }));
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className="md:col-span-1 flex items-center justify-center">
                   <button type="button" className="text-red-500 hover:text-red-700" onClick={() => {
@@ -446,7 +449,6 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
             ))}
             <button type="button" className="btn-secondary text-xs" onClick={() => setForm(p => ({ ...p, itinerary: [...p.itinerary, { day: p.itinerary.length + 1, title: "", description: "" }] }))}>+ Add Day</button>
           </div>
-        )}
 
         {/* Visa Specific Fields */}
         {categories.find(c => c._id === form.category)?.name?.toLowerCase() === "visas" && (
@@ -610,20 +612,12 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
                 }}
               />
               <div className="bg-white rounded-xl overflow-hidden border border-surface-200">
-                <ReactQuill
-                  theme="snow"
+                <RichTextEditor
                   value={c.description}
                   onChange={(content) => {
                     const newSections = [...form.contentSections];
                     newSections[idx].description = content;
                     setForm((prev) => ({ ...prev, contentSections: newSections }));
-                  }}
-                  modules={{
-                    toolbar: [
-                      ['bold', 'italic', 'underline', 'strike'],
-                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                      ['link', 'clean']
-                    ],
                   }}
                 />
               </div>

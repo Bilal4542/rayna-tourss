@@ -395,33 +395,64 @@ function Gallery({ images }) {
   );
 }
 
-// ─── Itinerary Day Card ───────────────────────────────────────────────────────
-function ItineraryDay({ item }) {
-  const [expanded, setExpanded] = useState(false);
+// ─── Itinerary Timeline Card ───────────────────────────────────────────────────
+function ItineraryDay({ item, isLast }) {
+  let imgSrc = null;
+  let cleanDescription = item.description || "";
+  
+  if (cleanDescription) {
+    // Try to match an image wrapped in a p tag first
+    const imgContainerRegex = /<p>\s*(<img[^>]+src="([^">]+)"[^>]*>)\s*<\/p>/i;
+    const containerMatch = cleanDescription.match(imgContainerRegex);
+    
+    if (containerMatch) {
+      imgSrc = containerMatch[2];
+      cleanDescription = cleanDescription.replace(containerMatch[0], '');
+    } else {
+      // Fallback: match just the img tag
+      const imgRegex = /<img[^>]+src="([^">]+)"[^>]*>/i;
+      const match = cleanDescription.match(imgRegex);
+      if (match) {
+        imgSrc = match[1];
+        cleanDescription = cleanDescription.replace(match[0], '');
+      }
+    }
+  }
+
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
-      <button
-        onClick={() => setExpanded((e) => !e)}
-        className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-orange-50/50 transition-colors"
-      >
-        <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 font-bold text-sm flex items-center justify-center shrink-0">
-          {item.day}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-orange-500 uppercase tracking-wider">Day {item.day}</p>
-          <p className="text-sm font-semibold text-gray-800 truncate">{item.title || "—"}</p>
-        </div>
-        {expanded ? (
-          <ChevronUp size={16} className="text-gray-400 shrink-0" />
-        ) : (
-          <ChevronDown size={16} className="text-gray-400 shrink-0" />
-        )}
-      </button>
-      {expanded && item.description && (
-        <div className="px-5 pb-5 text-sm text-gray-600 leading-relaxed border-t border-gray-100 bg-gray-50/30">
-          <p className="pt-4">{item.description}</p>
-        </div>
+    <div className="relative flex gap-4 md:gap-5 pb-10">
+      {/* Timeline Line */}
+      {!isLast && (
+        <div className="absolute left-[1.125rem] md:left-[1.375rem] top-10 bottom-0 w-px bg-gray-200"></div>
       )}
+      
+      {/* Day Badge */}
+      <div className="relative z-10 w-9 h-9 md:w-11 md:h-11 rounded-full bg-[#2d2d2d] text-white font-bold text-[10px] md:text-xs flex items-center justify-center shrink-0 shadow-sm">
+        Day {item.day}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pt-0">
+        <div className="flex items-center gap-3 mb-3">
+          {imgSrc && (
+            <img 
+              src={imgSrc} 
+              alt={item.title} 
+              className="w-20 h-14 md:w-24 md:h-16 object-cover rounded-xl shadow-sm shrink-0"
+            />
+          )}
+          <h3 className="text-sm md:text-base font-bold text-gray-800 uppercase tracking-wide">
+            {item.title}
+          </h3>
+        </div>
+        
+        {cleanDescription && (
+          <div 
+            className="text-[13px] md:text-[14px] text-gray-500 leading-relaxed rich-text-itinerary"
+            dangerouslySetInnerHTML={{ __html: cleanDescription }}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -442,6 +473,7 @@ const ProductDetail = () => {
   const [sortBy, setSortBy] = useState("Top Reviews");
   const [filterBy, setFilterBy] = useState(null); // null, '4+', '3', '<3', 'images'
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isItineraryOpen, setIsItineraryOpen] = useState(false);
 
   const sidebarRef = useRef(null);
 
@@ -580,6 +612,27 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Inline styles for rich text images */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .rich-text-itinerary img {
+          display: block;
+          max-width: 100%;
+          max-height: 400px;
+          object-fit: cover;
+          border-radius: 12px;
+          margin-bottom: 16px;
+        }
+        .rich-text-itinerary p {
+          margin-bottom: 12px;
+        }
+        .rich-text img {
+          display: block;
+          width: 100%;
+          border-radius: 12px;
+          margin-top: 16px;
+          margin-bottom: 16px;
+        }
+      `}} />
       {/* ── Breadcrumb ─────────────────────────────────────────────────────── */}
       <div className="bg-white">
         <div className="max-w-[97%] mx-auto px-4 py-3 flex items-center gap-2 text-xs text-gray-500">
@@ -691,6 +744,45 @@ const ProductDetail = () => {
 
 
 
+            {/* ── Itinerary Timeline (Accordion) ────────────────────────────────────────── */}
+            {product.itinerary?.length > 0 && (
+              <div className="bg-gray-50/50 rounded-2xl overflow-hidden transition-all duration-300 mb-4">
+                <button
+                  onClick={() => setIsItineraryOpen(!isItineraryOpen)}
+                  className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-100/50 transition-colors group"
+                >
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <span className={`w-1.5 h-6 bg-orange-500 rounded-full transition-all duration-300 ${isItineraryOpen ? "scale-y-100" : "scale-y-75 opacity-50"}`} />
+                    Tour Itinerary
+                  </h2>
+                  <div className={`p-2 rounded-full bg-white shadow-sm border border-gray-100 transition-transform duration-300 ${isItineraryOpen ? "rotate-180" : ""}`}>
+                    <ChevronDown size={18} className="text-gray-500" />
+                  </div>
+                </button>
+
+                <AnimatePresence>
+                  {isItineraryOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <div className="px-6 md:px-8 pb-6 overflow-hidden break-words">
+                        {product.itinerary.map((item, idx) => (
+                          <ItineraryDay 
+                            key={idx} 
+                            item={item} 
+                            isLast={idx === product.itinerary.length - 1} 
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
             {/* ── Content Sections (Accordion) ─────────────────────────── */}
             {product.contentSections?.length > 0 && (
               <div className="space-y-4 py-2">
@@ -741,6 +833,8 @@ const ProductDetail = () => {
                 })}
               </div>
             )}
+
+
 
             {/* ── Location Section ────────────────────────────────────────── */}
             {product.mapAddress && (
