@@ -6,12 +6,12 @@ const {
 
 const router = express.Router();
 
-// @route   POST /api/reviews/:productId
+// @route   POST /api/reviews/product/:productId
 // @desc    Create a new review for a product
-router.post("/:productId", createReview);
+router.post("/product/:productId", createReview);
 
-// @route   GET /api/reviews/:productId
+// @route   GET /api/reviews/product/:productId
 // @desc    Get all reviews for a product
-router.get("/:productId", getReviews);
+router.get("/product/:productId", getReviews);
 
 module.exports = router;

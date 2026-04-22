@@ -392,7 +392,8 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
         <div className="flex flex-col gap-1">
           <label className="text-xs font-semibold text-surface-500 uppercase tracking-wider ml-1">Booking Type</label>
           <select className="input" value={form.bookingType} onChange={(e) => onChange("bookingType", e.target.value)}>
-            <option value="inquiry">Inquiry Only</option>
+            <option value="inquiry">Check Availability (Button)</option>
+            <option value="email">Email Inquiry (with Icons)</option>
             <option value="direct">Direct Booking (Calendar)</option>
           </select>
         </div>
