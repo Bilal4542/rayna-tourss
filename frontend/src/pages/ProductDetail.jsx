@@ -9,7 +9,7 @@ import {
   FileText, Phone, Calendar, Shield, ChevronDown, ChevronUp,
   Loader2, AlertTriangle, Ship, Users, Info, BookOpen,
   Zap, Smartphone, Globe, History, Map, ShieldCheck, Languages,
-  HelpCircle, Heart, RotateCcw, ThumbsUp, MessageSquare, ListFilter, Image as ImageIcon, Send
+  HelpCircle, Heart, RotateCcw, ThumbsUp, MessageSquare, ListFilter, Image as ImageIcon, Send, Share
 } from "lucide-react";
 import { reviewApi } from "../services/reviewApi";
 import ReviewSummary from "../components/Review/ReviewSummary";
@@ -679,16 +679,34 @@ const ProductDetail = () => {
           margin-bottom: 16px;
         }
       `}} />
-      {/* ── Breadcrumb ─────────────────────────────────────────────────────── */}
       <div className="bg-white">
-        <div className="max-w-[97%] mx-auto px-4 py-3 flex items-center gap-2 text-xs text-gray-500">
-          <Link to="/" className="hover:text-orange-500 transition-colors font-medium">Home</Link>
-          <span>/</span>
-          <Link to={`/${catRoute}`} className="hover:text-orange-500 transition-colors font-medium capitalize">
-            {catName}
-          </Link>
-          <span>/</span>
-          <span className="text-gray-800 font-semibold truncate max-w-[200px]">{product.name}</span>
+        <div className="max-w-[97%] mx-auto px-4 py-3 flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center gap-2">
+            <Link to="/" className="hover:text-orange-500 transition-colors font-medium">Home</Link>
+            <span>/</span>
+            <Link to={`/${catRoute}`} className="hover:text-orange-500 transition-colors font-medium capitalize">
+              {catName}
+            </Link>
+            <span>/</span>
+            {product.city?.name && (
+              <>
+                <span className="font-medium text-gray-400">{product.city.name}</span>
+                <span>/</span>
+              </>
+            )}
+            <span className="text-gray-800 font-semibold truncate max-w-[200px]">{product.name}</span>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <button className="flex items-center gap-2 hover:text-orange-500 transition-colors font-medium">
+              <Share size={16} />
+              <span>Share</span>
+            </button>
+            <button className="flex items-center gap-2 hover:text-orange-500 transition-colors font-medium">
+              <Heart size={16} />
+              <span>Add to Wishlist</span>
+            </button>
+          </div>
         </div>
       </div>
 
