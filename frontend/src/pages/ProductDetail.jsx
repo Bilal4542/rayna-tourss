@@ -17,6 +17,7 @@ import ReviewItem from "../components/Review/ReviewItem";
 import ReviewForm from "../components/Review/ReviewForm";
 import ExploreMore from "../components/ExploreMore";
 import { homeTabs, holidayTabs, visaTabs, cruiseTabs } from "../data/exploreMoreData/exploreMoreData";
+import { useLanguageCurrency } from "../context/LanguageCurrencyContext";
 
 const ICON_MAP = {
   Clock, Zap, Smartphone, Globe, History, Map, ShieldCheck, Languages, Check, Star, Info, Shield, Ship, Users, Heart, RotateCcw, MapPin
@@ -618,10 +619,13 @@ const ProductDetail = () => {
   }
 
   // ── Derived values ─────────────────────────────────────────────────────────
+  const { currency: selectedCurrency, convertPrice, currencySymbol } = useLanguageCurrency();
   const pricing = product.pricing || {};
-  const actualPrice = pricing.actualPrice ?? 0;
-  const discountPrice = pricing.discountPrice;
-  const currency = pricing.currency || "AED";
+  const actualPriceAED = pricing.actualPrice ?? 0;
+  const discountPriceAED = pricing.discountPrice;
+  const actualPrice = Math.round(convertPrice(actualPriceAED));
+  const discountPrice = typeof discountPriceAED === "number" ? Math.round(convertPrice(discountPriceAED)) : undefined;
+  const currency = currencySymbol;
   const displayPrice = discountPrice ?? actualPrice;
   const hasDiscount = typeof discountPrice === "number" && discountPrice < actualPrice;
   const savePct = hasDiscount
@@ -682,9 +686,9 @@ const ProductDetail = () => {
       <div className="bg-white">
         <div className="max-w-[97%] mx-auto px-4 py-3 flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-2">
-            <Link to="/" className="hover:text-orange-500 transition-colors font-medium">Home</Link>
+            <Link to="/" className="cursor-pointer font-medium">Home</Link>
             <span>/</span>
-            <Link to={`/${catRoute}`} className="hover:text-orange-500 transition-colors font-medium capitalize">
+            <Link to={`/${catRoute}`} className="cursor-pointer font-medium capitalize">
               {catName}
             </Link>
             <span>/</span>
@@ -698,11 +702,11 @@ const ProductDetail = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="flex items-center gap-2 hover:text-orange-500 transition-colors font-medium">
+            <button className="flex items-center gap-2 cursor-pointer font-medium">
               <Share size={16} />
               <span>Share</span>
             </button>
-            <button className="flex items-center gap-2 hover:text-orange-500 transition-colors font-medium">
+            <button className="flex items-center gap-2 cursor-pointer font-medium">
               <Heart size={16} />
               <span>Add to Wishlist</span>
             </button>

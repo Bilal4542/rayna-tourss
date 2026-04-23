@@ -12,12 +12,13 @@ import Footer from "./components/Footer";
 import UserSidebar from "./components/UserSidebar";
 import ProductDetail from "./pages/ProductDetail";
 import { useState } from "react";
+import { LanguageCurrencyProvider } from "./context/LanguageCurrencyContext";
 
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   return (
-    <>
+    <LanguageCurrencyProvider>
       <Navbar onOpenUserMenu={() => setIsSidebarOpen(true)}/>
       <UserSidebar 
         isOpen={isSidebarOpen} 
@@ -48,7 +49,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
       </Routes>
       <Footer/>
-    </>
+    </LanguageCurrencyProvider>
   );
 }
 

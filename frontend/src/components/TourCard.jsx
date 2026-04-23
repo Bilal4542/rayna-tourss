@@ -12,6 +12,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguageCurrency } from "../context/LanguageCurrencyContext";
 
 /**
  * TourCard — Universal card for the entire website.
@@ -68,6 +69,7 @@ const TourCard = ({
       : [fallbackImage || "https://via.placeholder.com/600x400?text=Rayna+Tours"];
 
   const [currentImg, setCurrentImg] = useState(0);
+  const { convertPrice, currencySymbol } = useLanguageCurrency();
 
   // ── Auto-detect variant ──────────────────────────────────────────────────────
   const isCruise =
@@ -332,7 +334,7 @@ const TourCard = ({
                   from
                 </span>
                 <span className="text-lg md:text-xl font-bold text-gray-800 leading-none mt-0.5">
-                  AED {Math.floor(parseFloat(price))}
+                  {currencySymbol} {Math.floor(convertPrice(parseFloat(price)))}
                 </span>
               </div>
             ) : (
@@ -342,13 +344,13 @@ const TourCard = ({
                   <p className="text-xs text-gray-400 font-medium">from</p>
                   {hasDiscount && (
                     <span className="text-gray-400 line-through text-sm">
-                      AED {originalPrice}
+                      {currencySymbol} {Math.floor(convertPrice(originalPrice))}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="font-bold text-left text-sm md:text-base line-clamp-1 text-gray-800">
-                    AED {price}
+                    {currencySymbol} {Math.floor(convertPrice(price))}
                   </p>
                   {hasDiscount && (
                     <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center">

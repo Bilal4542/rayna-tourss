@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Phone, User, ShoppingCart, Search } from "lucide-react";
+import { Phone, User, ShoppingCart, Search, X } from "lucide-react";
 import logo from "../assets/raynatourslogo.webp";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { homeApi } from "../services/homeApi";
+import { useLanguageCurrency } from "../context/LanguageCurrencyContext";
 
 // Icon map: matches a category slug or lowercased name to an emoji icon
 const ICON_MAP = {
@@ -56,10 +57,15 @@ const getCategoryRoute = (slug = "") => {
 
 const Navbar = ({ onOpenUserMenu }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { language, setLanguage, currency, setCurrency, currencySymbol } = useLanguageCurrency();
+
+  // Hide categories row on product detail pages
+  const isProductDetailPage = /\/(activities|holidays|visas|cruises)\/[^/]+/.test(location.pathname);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,7 +89,7 @@ const Navbar = ({ onOpenUserMenu }) => {
 
   return (
     <nav
-      className={`sticky top-0 w-full z-50 bg-white transition-all duration-300 pb-4 ${isScrolled ? "shadow-md border-transparent" : "border-b border-gray-100"
+      className={`sticky top-0 w-full z-50 bg-white transition-all duration-300 ${isProductDetailPage ? "" : "pb-4"} ${isScrolled ? "shadow-md border-transparent" : "border-b border-gray-100"
         }`}
     >
       {/* Top Row: Logo & Actions */}
@@ -157,11 +163,128 @@ const Navbar = ({ onOpenUserMenu }) => {
           </div>
 
           {/* Language / Currency Button */}
-          <button className="px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
-            <span className="text-sm text-gray-500 font-medium">
-              English / AED
-            </span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setIsCurrencyOpen(v => !v)}
+              className={`notranslate px-4 py-2 border border-gray-200 rounded-lg transition-colors cursor-pointer ${
+                isCurrencyOpen 
+                  ? "relative z-50 bg-white" 
+                  : "hover:bg-gray-50"
+              }`}
+            >
+              <span className="text-sm text-gray-500 font-medium">
+                {language} / {currency}
+              </span>
+            </button>
+
+            {isCurrencyOpen && (
+              <>
+                {/* Backdrop */}
+                <div
+                  className="fixed inset-0 z-40 bg-black/40"
+                  onClick={() => setIsCurrencyOpen(false)}
+                />
+
+                {/* Popup Panel */}
+                <div className="fixed left-1/2 -translate-x-1/2 top-20 z-50 bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-gray-100 w-[92vw] max-w-4xl overflow-hidden">
+                  {/* Close button */}
+                  <button
+                    onClick={() => setIsCurrencyOpen(false)}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 cursor-pointer z-10"
+                  >
+                    <X size={20} />
+                  </button>
+
+                  <div className="flex min-h-[420px]">
+                    {/* ── LEFT: Languages ───────────────────────────────── */}
+                    <div className="w-56 shrink-0 border-r border-gray-100 p-6">
+                      <h3 className="text-lg font-bold text-gray-900 mb-5">Languages</h3>
+                      {["English", "Arabic"].map(lang => (
+                        <button
+                          key={lang}
+                          onClick={() => { setLanguage(lang); setIsCurrencyOpen(false); }}
+                          className={`w-full text-left px-3 py-2 mb-1.5 rounded-lg border text-[13px] font-medium cursor-pointer transition-all ${
+                            language === lang
+                              ? "border-gray-900 text-gray-900 bg-gray-50"
+                              : "border-gray-200 text-gray-600 hover:border-gray-400"
+                          }`}
+                        >
+                          {lang}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* ── RIGHT: Currencies ─────────────────────────────── */}
+                    <div className="flex-1 p-6 overflow-y-auto max-h-[520px]">
+                      {/* Popular Currencies */}
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">Popular Currencies</h3>
+                      <div className="grid grid-cols-3 gap-2 mb-6">
+                        {[
+                          { code: "AED", name: "Arab Emirates Dirham" },
+                          { code: "INR", name: "Indian Rupee" },
+                          { code: "USD", name: "American Dollar" },
+                        ].map(c => (
+                          <button
+                            key={c.code}
+                            onClick={() => { setCurrency(c.code); setIsCurrencyOpen(false); }}
+                            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border text-[13px] cursor-pointer transition-all ${
+                              currency === c.code
+                                ? "border-gray-900 bg-gray-50 font-semibold"
+                                : "border-gray-200 hover:border-gray-400"
+                            }`}
+                          >
+                            <span className="text-[11px] font-bold text-gray-500 shrink-0">{c.code}</span>
+                            <span className="text-gray-700 truncate">{c.name}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* More Currencies */}
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">More Currencies</h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { code: "AMD", name: "Armenian Dram" },
+                          { code: "AUD", name: "Australian Dollar" },
+                          { code: "DKK", name: "Denmark Krona" },
+                          { code: "EUR", name: "Euro" },
+                          { code: "GBP", name: "UK Pounds Sterling" },
+                          { code: "GEL", name: "Georgian Lari" },
+                          { code: "HKD", name: "Hong Kong Dollar" },
+                          { code: "IDR", name: "Indonesian Rupiah" },
+                          { code: "JPY", name: "Japanese Yen" },
+                          { code: "KZT", name: "Kazakhstani Tenge" },
+                          { code: "MOP", name: "Macau Pataca" },
+                          { code: "MUR", name: "Mauritian Rupee" },
+                          { code: "MYR", name: "Malaysian Ringgit" },
+                          { code: "OMR", name: "Omani Rial" },
+                          { code: "SAR", name: "Saudi Arabian Riyal" },
+                          { code: "SGD", name: "Singapore Dollar" },
+                          { code: "THB", name: "Thai Baht" },
+                          { code: "TRY", name: "Turkish Lira" },
+                          { code: "UZS", name: "Uzbekistani Som" },
+                          { code: "VND", name: "Vietnamese Dong" },
+                          { code: "ZAR", name: "South African Rand" },
+                        ].map(c => (
+                          <button
+                            key={c.code}
+                            onClick={() => { setCurrency(c.code); setIsCurrencyOpen(false); }}
+                            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border text-[13px] cursor-pointer transition-all ${
+                              currency === c.code
+                                ? "border-gray-900 bg-gray-50 font-semibold"
+                                : "border-gray-200 hover:border-gray-400"
+                            }`}
+                          >
+                            <span className="text-[11px] font-bold text-gray-400 shrink-0">{c.code}</span>
+                            <span className="text-gray-700 truncate">{c.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* User Profile Icon */}
           <button
@@ -178,8 +301,9 @@ const Navbar = ({ onOpenUserMenu }) => {
         </div>
       </div>
 
-      {/* Bottom Row: Categories & Search */}
-      <div className="max-w-[99%] mx-auto px-6 flex justify-between items-center">
+      {/* Bottom Row: Categories & Search — hidden on product detail pages */}
+      {!isProductDetailPage && (
+        <div className="max-w-[99%] mx-auto px-6 flex justify-between items-center">
         {/* Left Category Pills */}
         <div className="flex items-center space-x-3">
           {loadingCats ? (
@@ -205,9 +329,9 @@ const Navbar = ({ onOpenUserMenu }) => {
                     return `
                     flex items-center space-x-0.5 justify-center px-5 py-2.5 rounded-xl font-medium transition-all duration-200
                     ${active
-                      ? "bg-white text-gray-800 shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
-                      : "bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-white hover:shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
-                    }
+                        ? "bg-white text-gray-800 shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+                        : "bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-white hover:shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+                      }
                   `}
                   }
                   aria-current={
@@ -236,6 +360,7 @@ const Navbar = ({ onOpenUserMenu }) => {
           />
         </div>
       </div>
+      )}
     </nav>
   );
 };

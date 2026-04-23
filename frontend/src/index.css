@@ -51,3 +51,30 @@ body {
     color: #111827;
   }
 }
+
+/* Hide Google Translate completely */
+.goog-te-banner-frame,
+iframe.goog-te-banner-frame,
+iframe.skiptranslate,
+.VIpgJd-Zvi9od-ORHb-OEVmcd,
+.VIpgJd-Zvi9od-aZ2wEe-wOHMyf,
+#goog-gt-tt,
+.goog-te-gadget-icon {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+body {
+    top: 0px !important;
+}
+
+.goog-tooltip,
+.goog-tooltip:hover {
+    display: none !important;
+}
+
+.goog-text-highlight {
+    background-color: transparent !important;
+    border: none !important; 
+    box-shadow: none !important;
+}
