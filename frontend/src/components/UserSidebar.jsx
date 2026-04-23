@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, ShoppingCart, Briefcase, Globe, Languages, FileText, ShieldCheck, Info, Phone, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import LoginModal from './LoginModal';
 
 const UserSidebar = ({ isOpen, onClose }) => {
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
   return (
-    <AnimatePresence>
+    <>
+      <AnimatePresence>
       {isOpen && (
         <>
           {/* Dark Overlay */}
@@ -36,7 +40,13 @@ const UserSidebar = ({ isOpen, onClose }) => {
             <div className="p-4">
               <div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 flex justify-between items-center">
                 <p className="text-gray-700 font-semibold text-sm">Already have an account?</p>
-                <button className="bg-[#2D2D2D] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-black transition-colors">
+                <button 
+                  onClick={() => {
+                    setIsLoginModalOpen(true);
+                    onClose();
+                  }}
+                  className="bg-[#2D2D2D] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-black transition-colors cursor-pointer"
+                >
                   Login Now
                 </button>
               </div>
@@ -76,7 +86,9 @@ const UserSidebar = ({ isOpen, onClose }) => {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+    </>
   );
 };
 

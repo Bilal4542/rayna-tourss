@@ -61,8 +61,16 @@ const Navbar = ({ onOpenUserMenu }) => {
   const [categories, setCategories] = useState([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
   const { language, setLanguage, currency, setCurrency, currencySymbol } = useLanguageCurrency();
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
 
   // Hide categories row on product detail pages
   const isProductDetailPage = /\/(activities|holidays|visas|cruises)\/[^/]+/.test(location.pathname);
@@ -289,9 +297,18 @@ const Navbar = ({ onOpenUserMenu }) => {
           {/* User Profile Icon */}
           <button
             onClick={onOpenUserMenu}
-            className="flex items-center justify-center cursor-pointer w-10 h-10 rounded-full text-gray-500 bg-gray-200 transition-colors"
+            className="flex items-center justify-center cursor-pointer w-10 h-10 rounded-full text-gray-500 bg-gray-200 transition-colors overflow-hidden"
           >
-            <User size={20} />
+            {user?.profilePicture ? (
+              <img 
+                src={user.profilePicture} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+                onError={(e) => { e.target.src = ""; setUser({...user, profilePicture: null}); }}
+              />
+            ) : (
+              <User size={20} />
+            )}
           </button>
 
           {/* Cart Icon */}

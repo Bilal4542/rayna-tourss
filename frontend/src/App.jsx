@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
+import VerifyLogin from "./pages/VerifyLogin";
 import Signup from "./components/Signup";
 import Navbar from "./components/Navbar";
 import Activities from "./pages/Activities";
@@ -13,12 +14,14 @@ import UserSidebar from "./components/UserSidebar";
 import ProductDetail from "./pages/ProductDetail";
 import { useState } from "react";
 import { LanguageCurrencyProvider } from "./context/LanguageCurrencyContext";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   return (
-    <LanguageCurrencyProvider>
+    <GoogleOAuthProvider clientId="860874102599-d8jog91f7t0cfb5olp881l2hq6bio6jc.apps.googleusercontent.com">
+      <LanguageCurrencyProvider>
       <Navbar onOpenUserMenu={() => setIsSidebarOpen(true)}/>
       <UserSidebar 
         isOpen={isSidebarOpen} 
@@ -46,10 +49,12 @@ function App() {
         {/* ── Other pages ── */}
         <Route path="/about-us" element={<AboutUs/>}/>
         <Route path="/login" element={<Login />} />
+        <Route path="/verify-login" element={<VerifyLogin />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>
       <Footer/>
     </LanguageCurrencyProvider>
+    </GoogleOAuthProvider>
   );
 }
 

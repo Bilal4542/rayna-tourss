@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       minlength: 2,
       maxlength: 60,
@@ -24,9 +24,17 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       minlength: 8,
       select: false,
+    },
+    googleId: {
+      type: String,
+      required: false,
+    },
+    profilePicture: {
+      type: String,
+      required: false,
     },
     role: {
       type: String,
@@ -39,13 +47,12 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre("save", async function hashPassword(next) {
-  if (!this.isModified("password")) {
-    return next();
+userSchema.pre("save", async function hashPassword() {
+  if (!this.isModified("password") || !this.password) {
+    return;
   }
 
   this.password = await bcrypt.hash(this.password, 12);
-  next();
 });
 
 userSchema.methods.comparePassword = function comparePassword(plainPassword) {
