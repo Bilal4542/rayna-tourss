@@ -15,6 +15,8 @@ import { reviewApi } from "../services/reviewApi";
 import ReviewSummary from "../components/Review/ReviewSummary";
 import ReviewItem from "../components/Review/ReviewItem";
 import ReviewForm from "../components/Review/ReviewForm";
+import ExploreMore from "../components/ExploreMore";
+import { homeTabs, holidayTabs, visaTabs, cruiseTabs } from "../data/exploreMoreData/exploreMoreData";
 
 const ICON_MAP = {
   Clock, Zap, Smartphone, Globe, History, Map, ShieldCheck, Languages, Check, Star, Info, Shield, Ship, Users, Heart, RotateCcw, MapPin
@@ -474,6 +476,8 @@ const ProductDetail = () => {
   const [filterBy, setFilterBy] = useState(null); // null, '4+', '3', '<3', 'images'
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [isItineraryOpen, setIsItineraryOpen] = useState(false);
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(3);
+  const [dynamicExploreTabs, setDynamicExploreTabs] = useState([]);
 
   const sidebarRef = useRef(null);
 
@@ -492,6 +496,37 @@ const ProductDetail = () => {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    if (product?.category?._id) {
+      homeApi.getProductsGroupedByCity(product.category._id).then(res => {
+        const tabs = res.groupedByCity.map(group => ({
+          cityName: group.cityName,
+          tabHeading: `More in ${group.cityName}`,
+          icon: "MapPin",
+          links: group.products
+            .filter(p => p._id !== product._id)
+            .map(p => ({
+              label: p.name,
+              url: `/${toCategoryRoute(product.category.slug)}/${p.slug}`
+            }))
+        })).filter(tab => tab.links.length > 0);
+
+        const productCity = product.city?.name || product.manualCity;
+        if (productCity) {
+          tabs.sort((a, b) => {
+            if (a.cityName === productCity) return -1;
+            if (b.cityName === productCity) return 1;
+            return 0;
+          });
+        }
+        
+        setDynamicExploreTabs(tabs);
+      }).catch(err => {
+         console.error("Failed to load related products", err);
+      });
+    }
+  }, [product]);
 
   const fetchReviews = async (productId) => {
     setReviewLoading(true);
@@ -554,6 +589,7 @@ const ProductDetail = () => {
       sorted.sort((a, b) => b.rating - a.rating);
     }
     setSortedReviews(sorted);
+    setVisibleReviewsCount(3); // Reset visible reviews when filter/sort changes
   }, [sortBy, filterBy, reviews]);
 
   if (loading) {
@@ -610,6 +646,14 @@ const ProductDetail = () => {
     availableTabs.push(TABS.VISA);
   if (product.faq?.length > 0) availableTabs.push(TABS.FAQ);
   if (product.guestPolicy || product.importantInformation) availableTabs.push(TABS.POLICY);
+
+  const exploreTabs =
+    isHoliday ? holidayTabs :
+    isCruise ? cruiseTabs :
+    isVisa ? visaTabs :
+    homeTabs;
+
+  const finalExploreTabs = dynamicExploreTabs.length > 0 ? dynamicExploreTabs : exploreTabs;
 
   return (
     <div className="min-h-screen">
@@ -1020,10 +1064,22 @@ const ProductDetail = () => {
                         <Loader2 className="animate-spin text-blue-500" size={32} />
                       </div>
                     ) : sortedReviews.length > 0 ? (
-                      <div className="divide-y divide-gray-50">
-                        {sortedReviews.map(review => (
-                          <ReviewItem key={review._id} review={review} />
-                        ))}
+                      <div className="space-y-4">
+                        <div className="divide-y divide-gray-50">
+                          {sortedReviews.slice(0, visibleReviewsCount).map(review => (
+                            <ReviewItem key={review._id} review={review} />
+                          ))}
+                        </div>
+                        {visibleReviewsCount < sortedReviews.length && (
+                          <div className="pt-2 pb-4 flex justify-center border-t border-gray-50">
+                            <button
+                              onClick={() => setVisibleReviewsCount(prev => prev + 3)}
+                              className="px-6 py-2.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 text-[13px] font-bold rounded-xl transition-colors shadow-sm active:scale-95"
+                            >
+                              Load More Reviews
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="py-16 text-center bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200">
@@ -1154,6 +1210,7 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+      <ExploreMore tabsData={finalExploreTabs} />
     </div>
   );
 };

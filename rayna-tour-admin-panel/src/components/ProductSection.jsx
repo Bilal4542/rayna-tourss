@@ -408,48 +408,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
           </div>
         )}
 
-        {/* Day-wise Itinerary */}
-        <div className="md:col-span-2 space-y-3 py-4 border-t border-surface-100">
-            <h3 className="text-sm font-bold text-surface-700 uppercase tracking-wider">Day-wise Itinerary</h3>
-            {form.itinerary.map((item, idx) => (
-              <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 bg-surface-50/50 rounded-xl border border-surface-200">
-                <div className="md:col-span-1">
-                  <input type="number" className="input" placeholder="Day" value={item.day} onChange={(e) => {
-                    const next = [...form.itinerary];
-                    next[idx].day = e.target.value;
-                    setForm(p => ({ ...p, itinerary: next }));
-                  }} />
-                </div>
-                <div className="md:col-span-4">
-                  <input className="input" placeholder="Title" value={item.title} onChange={(e) => {
-                    const next = [...form.itinerary];
-                    next[idx].title = e.target.value;
-                    setForm(p => ({ ...p, itinerary: next }));
-                  }} />
-                </div>
-                <div className="md:col-span-6">
-                  <div className="bg-white rounded-xl overflow-hidden border border-surface-200">
-                    <RichTextEditor
-                      placeholder="Description"
-                      value={item.description}
-                      onChange={(content) => {
-                        const next = [...form.itinerary];
-                        next[idx].description = content;
-                        setForm(p => ({ ...p, itinerary: next }));
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="md:col-span-1 flex items-center justify-center">
-                  <button type="button" className="text-red-500 hover:text-red-700" onClick={() => {
-                    const next = form.itinerary.filter((_, i) => i !== idx);
-                    setForm(p => ({ ...p, itinerary: next }));
-                  }}>×</button>
-                </div>
-              </div>
-            ))}
-            <button type="button" className="btn-secondary text-xs" onClick={() => setForm(p => ({ ...p, itinerary: [...p.itinerary, { day: p.itinerary.length + 1, title: "", description: "" }] }))}>+ Add Day</button>
-          </div>
+
 
         {/* Visa Specific Fields */}
         {categories.find(c => c._id === form.category)?.name?.toLowerCase() === "visas" && (
@@ -585,6 +544,50 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
             Add Highlight
           </button>
         </div>
+
+        {/* Day-wise Itinerary */}
+        <div className="md:col-span-2 space-y-3 py-4 border-t border-surface-100">
+            <h3 className="text-sm font-bold text-surface-700 uppercase tracking-wider">Day-wise Itinerary</h3>
+            {form.itinerary.map((item, idx) => (
+              <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 bg-surface-50/50 rounded-xl border border-surface-200">
+                <div className="md:col-span-1">
+                  <input type="number" className="input" placeholder="Day" value={item.day} onChange={(e) => {
+                    const next = [...form.itinerary];
+                    next[idx].day = e.target.value;
+                    setForm(p => ({ ...p, itinerary: next }));
+                  }} />
+                </div>
+                <div className="md:col-span-4">
+                  <input className="input" placeholder="Title" value={item.title} onChange={(e) => {
+                    const next = [...form.itinerary];
+                    next[idx].title = e.target.value;
+                    setForm(p => ({ ...p, itinerary: next }));
+                  }} />
+                </div>
+                <div className="md:col-span-6">
+                  <div className="bg-white rounded-xl overflow-hidden border border-surface-200">
+                    <RichTextEditor
+                      placeholder="Description"
+                      value={item.description}
+                      onChange={(content) => {
+                        const next = [...form.itinerary];
+                        next[idx].description = content;
+                        setForm(p => ({ ...p, itinerary: next }));
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="md:col-span-1 flex items-center justify-center">
+                  <button type="button" className="text-red-500 hover:text-red-700" onClick={() => {
+                    const next = form.itinerary.filter((_, i) => i !== idx);
+                    setForm(p => ({ ...p, itinerary: next }));
+                  }}>×</button>
+                </div>
+              </div>
+            ))}
+            <button type="button" className="btn-secondary text-xs" onClick={() => setForm(p => ({ ...p, itinerary: [...p.itinerary, { day: p.itinerary.length + 1, title: "", description: "" }] }))}>+ Add Day</button>
+          </div>
+
         <div className="md:col-span-2 space-y-4">
           <p className="mb-2 text-sm font-medium text-surface-700 uppercase tracking-widest border-b pb-1">Content Sections (Rich Text)</p>
           {form.contentSections.map((c, idx) => (
