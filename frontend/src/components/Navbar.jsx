@@ -299,13 +299,20 @@ const Navbar = ({ onOpenUserMenu }) => {
             onClick={onOpenUserMenu}
             className="flex items-center justify-center cursor-pointer w-10 h-10 rounded-full text-gray-500 bg-gray-200 transition-colors overflow-hidden"
           >
-            {user?.profilePicture ? (
-              <img 
-                src={user.profilePicture} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-                onError={(e) => { e.target.src = ""; setUser({...user, profilePicture: null}); }}
-              />
+            {user ? (
+              user.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { e.target.src = ""; setUser({...user, profilePicture: null}); }}
+                />
+              ) : (
+                <div className="w-full h-full bg-[#2D2D2D] text-white flex items-center justify-center font-bold text-lg uppercase">
+                  {(user.name || user.email)?.[0]}
+                </div>
+              )
             ) : (
               <User size={20} />
             )}

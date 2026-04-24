@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ShoppingCart, Briefcase, Globe, Languages, FileText, ShieldCheck, Info, Phone, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoginModal from './LoginModal';
 
 const UserSidebar = ({ isOpen, onClose }) => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      } else {
+        setUser(null);
+      }
+    }
+  }, [isOpen]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.reload();
+  };
 
   return (
     <>
@@ -39,16 +57,33 @@ const UserSidebar = ({ isOpen, onClose }) => {
             {/* Login Promo Box */}
             <div className="p-4">
               <div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 flex justify-between items-center">
-                <p className="text-gray-700 font-semibold text-sm">Already have an account?</p>
-                <button 
-                  onClick={() => {
-                    setIsLoginModalOpen(true);
-                    onClose();
-                  }}
-                  className="bg-[#2D2D2D] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-black transition-colors cursor-pointer"
-                >
-                  Login Now
-                </button>
+                {user ? (
+                  <>
+                    <div className="flex flex-col">
+                      <p className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">Logged in as</p>
+                      <p className="text-gray-800 font-bold text-sm truncate max-w-[180px]">{user.email}</p>
+                    </div>
+                    <button 
+                      onClick={handleLogout}
+                      className="bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-red-100 transition-colors cursor-pointer"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-700 font-semibold text-sm">Already have an account?</p>
+                    <button 
+                      onClick={() => {
+                        setIsLoginModalOpen(true);
+                        onClose();
+                      }}
+                      className="bg-[#2D2D2D] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-black transition-colors cursor-pointer"
+                    >
+                      Login Now
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
