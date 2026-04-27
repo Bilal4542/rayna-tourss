@@ -36,7 +36,7 @@ const initialProduct = {
   guestPolicy: "",
   importantInformation: "",
   faq: [{ question: "", answer: "" }],
-  bookingType: "inquiry",
+  bookingType: "check_availability",
   itinerary: [{ day: 1, title: "", description: "" }],
   mapAddress: "",
 };
@@ -155,7 +155,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
     guestPolicy: form.guestPolicy?.trim() || undefined,
     importantInformation: form.importantInformation?.trim() || undefined,
     faq: form.faq.filter(f => f.question || f.answer),
-    bookingType: form.bookingType || "inquiry",
+    bookingType: form.bookingType || "check_availability",
     itinerary: form.itinerary.filter(i => i.title || i.description),
     mapAddress: form.mapAddress?.trim() || undefined,
   });
@@ -256,7 +256,7 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
       guestPolicy: product.guestPolicy || "",
       importantInformation: product.importantInformation || "",
       faq: product.faq?.length ? product.faq.map(f => ({ question: f.question, answer: f.answer })) : [{ question: "", answer: "" }],
-      bookingType: product.bookingType || "inquiry",
+      bookingType: product.bookingType || "check_availability",
       itinerary: product.itinerary?.length ? product.itinerary.map(i => ({ day: i.day, title: i.title, description: i.description })) : [{ day: 1, title: "", description: "" }],
       mapAddress: product.mapAddress || "",
     });
@@ -392,9 +392,9 @@ const ProductSection = ({ categories, cities, cityPoints }) => {
         <div className="flex flex-col gap-1">
           <label className="text-xs font-semibold text-surface-500 uppercase tracking-wider ml-1">Booking Type</label>
           <select className="input" value={form.bookingType} onChange={(e) => onChange("bookingType", e.target.value)}>
-            <option value="inquiry">Check Availability (Button)</option>
-            <option value="email">Email Inquiry (with Icons)</option>
-            <option value="direct">Direct Booking (Calendar)</option>
+            <option value="book_now">Book Now (Standard)</option>
+            <option value="check_availability">Check Availability (Inquiry)</option>
+            <option value="email">Email Inquiry (Direct)</option>
           </select>
         </div>
 

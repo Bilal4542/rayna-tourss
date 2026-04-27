@@ -192,8 +192,8 @@ const productSchema = new mongoose.Schema(
     },
     bookingType: {
       type: String,
-      enum: ["direct", "inquiry", "email"],
-      default: "inquiry",
+      enum: ["book_now", "check_availability", "email", "direct", "inquiry"],
+      default: "check_availability",
     },
     mapAddress: {
       type: String,

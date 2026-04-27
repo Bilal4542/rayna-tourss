@@ -105,7 +105,7 @@ const Navbar = ({ onOpenUserMenu }) => {
         }`}
     >
       {/* Top Row: Logo & Actions */}
-      <div className="relative z-[1001] bg-white border-b border-gray-100">
+      <div className="relative z-[1001] bg-white">
         <div className="max-w-[99%] mx-auto px-6 py-5 flex justify-between items-center">
         {/* Logo */}
         <Link to={"/"} className="">

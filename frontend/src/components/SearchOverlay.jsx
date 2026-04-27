@@ -155,7 +155,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
           className="fixed top-[81px] inset-x-0 bottom-0 z-[999] bg-white overflow-y-auto"
         >
           {/* Header Section */}
-          <div className="sticky top-0 bg-white z-20 border-b border-gray-100 pb-4">
+          <div className="sticky top-0 bg-white z-20 pb-4">
             <div className="max-w-[1200px] mx-auto px-6 pt-6">
               
               {/* Search Input Bar */}
