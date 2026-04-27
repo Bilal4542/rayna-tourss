@@ -18,6 +18,7 @@ import ReviewForm from "../components/Review/ReviewForm";
 import ExploreMore from "../components/ExploreMore";
 import { homeTabs, holidayTabs, visaTabs, cruiseTabs } from "../data/exploreMoreData/exploreMoreData";
 import { useLanguageCurrency } from "../context/LanguageCurrencyContext";
+import { useCart } from "../context/CartContext";
 
 const ICON_MAP = {
   Clock, Zap, Smartphone, Globe, History, Map, ShieldCheck, Languages, Check, Star, Info, Shield, Ship, Users, Heart, RotateCcw, MapPin
@@ -49,11 +50,13 @@ const TABS = {
 };
 
 // ─── Simple date picker calendar for direct-booking ─────────────────────────
-function BookingCalendar({ price, currency = "AED" }) {
+function BookingCalendar({ product, price, currency = "AED" }) {
   const today = new Date();
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState(null);
   const [guests, setGuests] = useState(1);
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -155,13 +158,23 @@ function BookingCalendar({ price, currency = "AED" }) {
 
       <button
         disabled={!selected}
+        onClick={() => {
+          if (!selected) return;
+          addToCart(product, {
+            date: new Date(year, month, selected.d).toISOString(),
+            adults: guests,
+            children: 0,
+            totalPrice: price
+          });
+          navigate('/cart');
+        }}
         className={`w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all
           ${selected
             ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-200 active:scale-[.98]"
             : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
       >
-        {selected ? "Confirm Booking" : "Select a Date"}
+        {selected ? "Add to Cart" : "Select a Date"}
       </button>
     </div>
   );
@@ -1153,7 +1166,7 @@ const ProductDetail = () => {
 
                 <div className="mt-4 space-y-2.5">
                   {isDirectBooking ? (
-                    <BookingCalendar price={displayPrice} currency={currency} />
+                    <BookingCalendar product={product} price={displayPrice} currency={currency} />
                   ) : isEmailBooking ? (
                     <div className="flex items-center gap-2">
                       <a
@@ -1179,8 +1192,20 @@ const ProductDetail = () => {
                       </a>
                     </div>
                   ) : (
-                    <button className="w-full py-3.5 rounded-xl font-bold text-sm tracking-wide bg-gray-900 hover:bg-gray-800 text-white active:scale-[.98] transition-all">
-                      Check Availability
+                    <button 
+                      onClick={() => {
+                        const { addToCart } = require('../context/CartContext');
+                        // For non-direct bookings, we can still add to cart with basic options
+                        addToCart(product, {
+                          adults: 1,
+                          children: 0,
+                          totalPrice: displayPrice || 0
+                        });
+                        navigate('/cart');
+                      }}
+                      className="w-full py-3.5 rounded-xl font-bold text-sm tracking-wide bg-gray-900 hover:bg-gray-800 text-white active:scale-[.98] transition-all"
+                    >
+                      Add to Cart
                     </button>
                   )}
                 </div>

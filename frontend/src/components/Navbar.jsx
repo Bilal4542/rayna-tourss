@@ -4,6 +4,7 @@ import logo from "../assets/raynatourslogo.webp";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { homeApi } from "../services/homeApi";
 import { useLanguageCurrency } from "../context/LanguageCurrencyContext";
+import { useCart } from "../context/CartContext";
 
 // Icon map: matches a category slug or lowercased name to an emoji icon
 const ICON_MAP = {
@@ -64,6 +65,7 @@ const Navbar = ({ onOpenUserMenu }) => {
   const [user, setUser] = useState(null);
   const location = useLocation();
   const { language, setLanguage, currency, setCurrency, currencySymbol } = useLanguageCurrency();
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -72,8 +74,8 @@ const Navbar = ({ onOpenUserMenu }) => {
     }
   }, []);
 
-  // Hide categories row on product detail pages
-  const isProductDetailPage = /\/(activities|holidays|visas|cruises)\/[^/]+/.test(location.pathname);
+  // Hide categories row on product detail and cart pages
+  const isCompactNavbar = /\/(activities|holidays|visas|cruises)\/[^/]+/.test(location.pathname) || location.pathname === '/cart' || location.pathname === '/checkout';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -97,7 +99,7 @@ const Navbar = ({ onOpenUserMenu }) => {
 
   return (
     <nav
-      className={`sticky top-0 w-full z-50 bg-white transition-all duration-300 ${isProductDetailPage ? "" : "pb-4"} ${isScrolled ? "shadow-md border-transparent" : "border-b border-gray-100"
+      className={`sticky top-0 w-full z-50 bg-white transition-all duration-300 ${isCompactNavbar ? "" : "pb-4"} ${isScrolled ? "shadow-md border-transparent" : "border-b border-gray-100"
         }`}
     >
       {/* Top Row: Logo & Actions */}
@@ -319,14 +321,19 @@ const Navbar = ({ onOpenUserMenu }) => {
           </button>
 
           {/* Cart Icon */}
-          <button className="text-gray-500 hover:text-gray-700 transition-colors pl-2 cursor-pointer">
+          <Link to="/cart" className="relative text-gray-500 hover:text-gray-700 transition-colors pl-2 cursor-pointer flex items-center">
             <ShoppingCart size={22} strokeWidth={1.5} />
-          </button>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-2 bg-orange-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                {cartCount}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
 
-      {/* Bottom Row: Categories & Search — hidden on product detail pages */}
-      {!isProductDetailPage && (
+      {/* Bottom Row: Categories & Search — hidden on product detail and cart pages */}
+      {!isCompactNavbar && (
         <div className="max-w-[99%] mx-auto px-6 flex justify-between items-center">
         {/* Left Category Pills */}
         <div className="flex items-center space-x-3">

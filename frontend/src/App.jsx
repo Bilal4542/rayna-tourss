@@ -14,16 +14,17 @@ import UserSidebar from "./components/UserSidebar";
 import ProductDetail from "./pages/ProductDetail";
 import { useState } from "react";
 import { LanguageCurrencyProvider } from "./context/LanguageCurrencyContext";
+import { CartProvider } from "./context/CartContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-
-
+import Cart from "./pages/Cart";
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   return (
     <GoogleOAuthProvider clientId="860874102599-d8jog91f7t0cfb5olp881l2hq6bio6jc.apps.googleusercontent.com">
       <LanguageCurrencyProvider>
-      <Navbar onOpenUserMenu={() => setIsSidebarOpen(true)}/>
-      <UserSidebar 
+        <CartProvider>
+          <Navbar onOpenUserMenu={() => setIsSidebarOpen(true)}/>
+          <UserSidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
       />
@@ -47,13 +48,15 @@ function App() {
         <Route path="/cruises/:slug" element={<ProductDetail/>}/>
 
         {/* ── Other pages ── */}
+        <Route path="/cart" element={<Cart/>}/>
         <Route path="/about-us" element={<AboutUs/>}/>
         <Route path="/login" element={<Login />} />
         <Route path="/verify-login" element={<VerifyLogin />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>
       <Footer/>
-    </LanguageCurrencyProvider>
+        </CartProvider>
+      </LanguageCurrencyProvider>
     </GoogleOAuthProvider>
   );
 }
