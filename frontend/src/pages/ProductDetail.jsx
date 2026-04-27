@@ -166,7 +166,6 @@ function BookingCalendar({ product, price, currency = "AED" }) {
             children: 0,
             totalPrice: price
           });
-          navigate('/cart');
         }}
         className={`w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all
           ${selected
@@ -477,6 +476,7 @@ function ItineraryDay({ item, isLast }) {
 const ProductDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -1194,14 +1194,12 @@ const ProductDetail = () => {
                   ) : (
                     <button 
                       onClick={() => {
-                        const { addToCart } = require('../context/CartContext');
                         // For non-direct bookings, we can still add to cart with basic options
                         addToCart(product, {
                           adults: 1,
                           children: 0,
                           totalPrice: displayPrice || 0
                         });
-                        navigate('/cart');
                       }}
                       className="w-full py-3.5 rounded-xl font-bold text-sm tracking-wide bg-gray-900 hover:bg-gray-800 text-white active:scale-[.98] transition-all"
                     >

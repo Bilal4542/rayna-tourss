@@ -5,6 +5,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { homeApi } from "../services/homeApi";
 import { useLanguageCurrency } from "../context/LanguageCurrencyContext";
 import { useCart } from "../context/CartContext";
+import SearchOverlay from "./SearchOverlay";
 
 // Icon map: matches a category slug or lowercased name to an emoji icon
 const ICON_MAP = {
@@ -63,6 +64,7 @@ const Navbar = ({ onOpenUserMenu }) => {
   const [loadingCats, setLoadingCats] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const [user, setUser] = useState(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   const { language, setLanguage, currency, setCurrency, currencySymbol } = useLanguageCurrency();
   const { cartCount } = useCart();
@@ -103,7 +105,8 @@ const Navbar = ({ onOpenUserMenu }) => {
         }`}
     >
       {/* Top Row: Logo & Actions */}
-      <div className="max-w-[99%] mx-auto px-6 py-5 flex justify-between items-center">
+      <div className="relative z-[1001] bg-white border-b border-gray-100">
+        <div className="max-w-[99%] mx-auto px-6 py-5 flex justify-between items-center">
         {/* Logo */}
         <Link to={"/"} className="">
           <img src={logo} alt="Rayna Tours" className="w-40" />
@@ -331,6 +334,7 @@ const Navbar = ({ onOpenUserMenu }) => {
           </Link>
         </div>
       </div>
+    </div>
 
       {/* Bottom Row: Categories & Search — hidden on product detail and cart pages */}
       {!isCompactNavbar && (
@@ -380,18 +384,24 @@ const Navbar = ({ onOpenUserMenu }) => {
         </div>
 
         {/* Right Search Bar */}
-        <div className="relative w-full max-w-86">
+        <div 
+          onClick={() => setIsSearchOpen(true)}
+          className="relative w-full max-w-86 cursor-pointer"
+        >
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search size={18} className="text-gray-400" strokeWidth={2} />
           </div>
-          <input
-            type="text"
-            placeholder="Search Tours.."
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg placeholder-gray-400 text-gray-700 focus:outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200 transition-all"
-          />
+          <div className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-gray-400 text-sm select-none">
+            Search Tours..
+          </div>
         </div>
       </div>
       )}
+
+      <SearchOverlay 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
+      />
     </nav>
   );
 };

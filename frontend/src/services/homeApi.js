@@ -77,5 +77,23 @@ export const homeApi = {
       throw new Error(getErrorMessage(error));
     }
   },
+
+  async getCities() {
+    try {
+      const { data } = await api.get("/cities");
+      return data?.data || [];
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
+  async getProducts(params = {}) {
+    try {
+      const { data } = await api.get("/products", { params });
+      return data?.data || [];
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
 };
 
