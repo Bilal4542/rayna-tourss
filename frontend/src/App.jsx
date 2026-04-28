@@ -12,6 +12,7 @@ import AboutUs from "./pages/AboutUs";
 import Footer from "./components/Footer";
 import UserSidebar from "./components/UserSidebar";
 import ProductDetail from "./pages/ProductDetail";
+import Booking from "./pages/Booking";
 import { useState } from "react";
 import { LanguageCurrencyProvider } from "./context/LanguageCurrencyContext";
 import { CartProvider } from "./context/CartContext";
@@ -46,6 +47,7 @@ function App() {
         <Route path="/holidays/:slug" element={<ProductDetail/>}/>
         <Route path="/visas/:slug" element={<ProductDetail/>}/>
         <Route path="/cruises/:slug" element={<ProductDetail/>}/>
+        <Route path="/booking/:slug" element={<Booking/>}/>
 
         {/* ── Other pages ── */}
         <Route path="/cart" element={<Cart/>}/>

@@ -336,8 +336,8 @@ const Navbar = ({ onOpenUserMenu }) => {
       </div>
     </div>
 
-      {/* Bottom Row: Categories & Search — hidden on product detail and cart pages */}
-      {!isCompactNavbar && (
+      {/* Bottom Row: Categories & Search — hidden on product detail, cart, and booking pages */}
+      {!isCompactNavbar && !location.pathname.startsWith('/booking') && (
         <div className="max-w-[99%] mx-auto px-6 flex justify-between items-center">
         {/* Left Category Pills */}
         <div className="flex items-center space-x-3">

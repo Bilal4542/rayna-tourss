@@ -1170,14 +1170,10 @@ const ProductDetail = () => {
                     {/* Primary Action Button */}
                     <button
                       onClick={() => {
-                        if (isBookNow) {
-                          addToCart(product, {
-                            adults: 1,
-                            children: 0,
-                            totalPrice: displayPrice || 0
-                          });
+                        if (isBookNow || isCheckAvailability) {
+                          navigate(`/booking/${product.slug}`);
                         } else {
-                          // Handle check_availability or email inquiry (e.g. open a modal or whatsapp)
+                          // Handle email inquiry (e.g. open whatsapp)
                           window.open(`https://wa.me/97142087444?text=I am interested in ${product.name}`, '_blank');
                         }
                       }}
